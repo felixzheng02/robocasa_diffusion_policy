@@ -60,7 +60,7 @@ def eval_task(checkpoint, base_output_dir, device, task, num_rollouts, num_envs,
     cfg.task.env_runner.n_test = num_rollouts
 
     # set dataset path and horizon
-    cfg.task.env_runner.max_steps = int(horizon * 1.5)
+    cfg.task.env_runner.max_steps = int(horizon)
     cfg.task.env_runner.n_envs = num_envs
 
     cls = hydra.utils.get_class(cfg._target_)
