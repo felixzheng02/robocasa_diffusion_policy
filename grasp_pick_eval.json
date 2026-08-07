@@ -1,0 +1,452 @@
+{
+  "backend": "graspnet-baseline",
+  "pose_source": "detector",
+  "summary": {
+    "PickPlaceCounterToOven": {
+      "n": 3,
+      "pick_success": 0.0,
+      "still_holding": 0.0,
+      "mean_steps_to_grasp": null,
+      "outcome_counts": {
+        "unreachable": 1,
+        "no_grasp_proposed": 2
+      }
+    },
+    "PickPlaceCounterToSink": {
+      "n": 3,
+      "pick_success": 0.0,
+      "still_holding": 0.0,
+      "mean_steps_to_grasp": null,
+      "outcome_counts": {
+        "executed_no_contact": 1,
+        "unreachable": 1,
+        "no_grasp_proposed": 1
+      }
+    },
+    "PickPlaceSinkToCounter": {
+      "n": 3,
+      "pick_success": 0.3333333333333333,
+      "still_holding": 0.0,
+      "mean_steps_to_grasp": 77.0,
+      "outcome_counts": {
+        "grasped_then_dropped": 1,
+        "no_grasp_proposed": 2
+      }
+    },
+    "PickPlaceCounterToCabinet": {
+      "n": 3,
+      "pick_success": 0.0,
+      "still_holding": 0.0,
+      "mean_steps_to_grasp": null,
+      "outcome_counts": {
+        "no_grasp_proposed": 3
+      }
+    },
+    "AVERAGE": {
+      "pick_success": 0.08333333333333333,
+      "still_holding": 0.0
+    }
+  },
+  "rollouts": {
+    "PickPlaceCounterToOven": [
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 120,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "fish",
+        "outcome": "unreachable",
+        "pose_source": "detector",
+        "grasp_score": 0.2734,
+        "grasp_width": 0.0724,
+        "grasp_to_obj_dist": 0.0185,
+        "stage_steps": {
+          "pre_grasp": 120
+        },
+        "stage_err": {
+          "pre_grasp": {
+            "pos": 0.0548,
+            "rot": 0.1014
+          }
+        },
+        "wall_s": 5.3,
+        "camera": "robot0_agentview_left",
+        "mask_px": {
+          "robot0_agentview_left": 586,
+          "robot0_agentview_right": 449,
+          "robot0_agentview_center": 0
+        },
+        "n_points": 5024,
+        "n_grasps_raw": 64,
+        "n_grasps_kept": 2,
+        "detect_latency_s": 0.187
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 0,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "chicken drumstick",
+        "outcome": "no_grasp_proposed",
+        "pose_source": "detector",
+        "grasp_score": null,
+        "grasp_width": null,
+        "grasp_to_obj_dist": null,
+        "stage_steps": {},
+        "stage_err": {},
+        "wall_s": 0.2,
+        "camera": "robot0_agentview_center",
+        "mask_px": {
+          "robot0_agentview_left": 166,
+          "robot0_agentview_right": 177,
+          "robot0_agentview_center": 306
+        },
+        "n_points": 6129,
+        "n_grasps_raw": 64,
+        "n_grasps_kept": 0,
+        "detect_latency_s": 0.163
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 0,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "sweet potato",
+        "outcome": "no_grasp_proposed",
+        "pose_source": "detector",
+        "grasp_score": null,
+        "grasp_width": null,
+        "grasp_to_obj_dist": null,
+        "stage_steps": {},
+        "stage_err": {},
+        "wall_s": 0.2,
+        "camera": "robot0_agentview_center",
+        "mask_px": {
+          "robot0_agentview_left": 436,
+          "robot0_agentview_right": 408,
+          "robot0_agentview_center": 777
+        },
+        "n_points": 8079,
+        "n_grasps_raw": 64,
+        "n_grasps_kept": 0,
+        "detect_latency_s": 0.145
+      }
+    ],
+    "PickPlaceCounterToSink": [
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 0,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "bar soap",
+        "outcome": "no_grasp_proposed",
+        "pose_source": "detector",
+        "grasp_score": null,
+        "grasp_width": null,
+        "grasp_to_obj_dist": null,
+        "stage_steps": {},
+        "stage_err": {},
+        "wall_s": 0.1,
+        "camera": "robot0_agentview_center",
+        "mask_px": {
+          "robot0_agentview_left": 314,
+          "robot0_agentview_right": 489,
+          "robot0_agentview_center": 645
+        },
+        "n_points": 5292,
+        "n_grasps_raw": 58,
+        "n_grasps_kept": 0,
+        "detect_latency_s": 0.098
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 120,
+        "still_holding": false,
+        "final_dz": -0.0002,
+        "obj": "broccoli",
+        "outcome": "unreachable",
+        "pose_source": "detector",
+        "grasp_score": 0.494,
+        "grasp_width": 0.0774,
+        "grasp_to_obj_dist": 0.0066,
+        "stage_steps": {
+          "pre_grasp": 120
+        },
+        "stage_err": {
+          "pre_grasp": {
+            "pos": 0.0853,
+            "rot": 0.2171
+          }
+        },
+        "wall_s": 3.6,
+        "camera": "robot0_agentview_right",
+        "mask_px": {
+          "robot0_agentview_left": 196,
+          "robot0_agentview_right": 299,
+          "robot0_agentview_center": 120
+        },
+        "n_points": 6787,
+        "n_grasps_raw": 64,
+        "n_grasps_kept": 6,
+        "detect_latency_s": 0.214
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 146,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "measuring cup",
+        "outcome": "executed_no_contact",
+        "pose_source": "detector",
+        "grasp_score": 0.0779,
+        "grasp_width": 0.0593,
+        "grasp_to_obj_dist": 0.017,
+        "stage_steps": {
+          "pre_grasp": 50,
+          "approach": 1,
+          "close": 15,
+          "lift": 60,
+          "hold": 20
+        },
+        "stage_err": {
+          "pre_grasp": {
+            "pos": 0.0126,
+            "rot": 0.0601
+          },
+          "approach": {
+            "pos": 0.1119,
+            "rot": 0.0656
+          },
+          "close": {
+            "pos": 0.0127,
+            "rot": 0.0275
+          },
+          "lift": {
+            "pos": 0.0001,
+            "rot": 0.0008
+          },
+          "hold": {
+            "pos": 0.0001,
+            "rot": 0.0007
+          }
+        },
+        "wall_s": 3.9,
+        "camera": "robot0_agentview_center",
+        "mask_px": {
+          "robot0_agentview_left": 672,
+          "robot0_agentview_right": 2486,
+          "robot0_agentview_center": 3650
+        },
+        "n_points": 6652,
+        "n_grasps_raw": 9,
+        "n_grasps_kept": 2,
+        "detect_latency_s": 0.082
+      }
+    ],
+    "PickPlaceSinkToCounter": [
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 0,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "garlic",
+        "outcome": "no_grasp_proposed",
+        "pose_source": "detector",
+        "grasp_score": null,
+        "grasp_width": null,
+        "grasp_to_obj_dist": null,
+        "stage_steps": {},
+        "stage_err": {},
+        "wall_s": 0.3,
+        "camera": "robot0_agentview_right",
+        "mask_px": {
+          "robot0_agentview_left": 146,
+          "robot0_agentview_right": 149,
+          "robot0_agentview_center": 0
+        },
+        "n_points": 4199,
+        "n_grasps_raw": 64,
+        "n_grasps_kept": 0,
+        "detect_latency_s": 0.196
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 77,
+        "steps": 155,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "carrot",
+        "outcome": "grasped_then_dropped",
+        "pose_source": "detector",
+        "grasp_score": 0.4539,
+        "grasp_width": 0.0611,
+        "grasp_to_obj_dist": 0.019,
+        "stage_steps": {
+          "pre_grasp": 47,
+          "approach": 13,
+          "close": 15,
+          "lift": 60,
+          "hold": 20
+        },
+        "stage_err": {
+          "pre_grasp": {
+            "pos": 0.0107,
+            "rot": 0.0289
+          },
+          "approach": {
+            "pos": 0.0189,
+            "rot": 0.0442
+          },
+          "close": {
+            "pos": 0.0183,
+            "rot": 0.0102
+          },
+          "lift": {
+            "pos": 0.0004,
+            "rot": 0.0009
+          },
+          "hold": {
+            "pos": 0.0001,
+            "rot": 0.0004
+          }
+        },
+        "wall_s": 4.3,
+        "camera": "robot0_agentview_right",
+        "mask_px": {
+          "robot0_agentview_left": 130,
+          "robot0_agentview_right": 132,
+          "robot0_agentview_center": 0
+        },
+        "n_points": 3191,
+        "n_grasps_raw": 64,
+        "n_grasps_kept": 2,
+        "detect_latency_s": 0.213
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 0,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "avocado",
+        "outcome": "no_grasp_proposed",
+        "pose_source": "detector",
+        "grasp_score": null,
+        "grasp_width": null,
+        "grasp_to_obj_dist": null,
+        "stage_steps": {},
+        "stage_err": {},
+        "wall_s": 0.2,
+        "camera": "robot0_agentview_right",
+        "mask_px": {
+          "robot0_agentview_left": 54,
+          "robot0_agentview_right": 68,
+          "robot0_agentview_center": 34
+        },
+        "n_points": 4698,
+        "n_grasps_raw": 64,
+        "n_grasps_kept": 0,
+        "detect_latency_s": 0.196
+      }
+    ],
+    "PickPlaceCounterToCabinet": [
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 0,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "paprika",
+        "outcome": "no_grasp_proposed",
+        "pose_source": "detector",
+        "grasp_score": null,
+        "grasp_width": null,
+        "grasp_to_obj_dist": null,
+        "stage_steps": {},
+        "stage_err": {},
+        "wall_s": 0.3,
+        "camera": "robot0_agentview_left",
+        "mask_px": {
+          "robot0_agentview_left": 798,
+          "robot0_agentview_right": 241,
+          "robot0_agentview_center": 18
+        },
+        "n_points": 5237,
+        "n_grasps_raw": 64,
+        "n_grasps_kept": 0,
+        "detect_latency_s": 0.213
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 0,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "croissant",
+        "outcome": "no_grasp_proposed",
+        "pose_source": "detector",
+        "grasp_score": null,
+        "grasp_width": null,
+        "grasp_to_obj_dist": null,
+        "stage_steps": {},
+        "stage_err": {},
+        "wall_s": 0.1,
+        "camera": "robot0_agentview_center",
+        "mask_px": {
+          "robot0_agentview_left": 326,
+          "robot0_agentview_right": 379,
+          "robot0_agentview_center": 650
+        },
+        "n_points": 6735,
+        "n_grasps_raw": 19,
+        "n_grasps_kept": 0,
+        "detect_latency_s": 0.079
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 0,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "liquor",
+        "outcome": "no_grasp_proposed",
+        "pose_source": "detector",
+        "grasp_score": null,
+        "grasp_width": null,
+        "grasp_to_obj_dist": null,
+        "stage_steps": {},
+        "stage_err": {},
+        "wall_s": 0.1,
+        "camera": "robot0_agentview_center",
+        "mask_px": {
+          "robot0_agentview_left": 550,
+          "robot0_agentview_right": 629,
+          "robot0_agentview_center": 1126
+        },
+        "n_points": 4988,
+        "n_grasps_raw": 38,
+        "n_grasps_kept": 0,
+        "detect_latency_s": 0.094
+      }
+    ]
+  }
+}

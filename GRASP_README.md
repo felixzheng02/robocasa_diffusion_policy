@@ -30,16 +30,64 @@ MUJOCO_GL=egl python eval_anygrasp_pick.py --pose_source oracle   # upper bound,
 all. It is the arm the detector is measured against, and it uses the identical executor and
 scoring, so the difference between the two is attributable to grasp synthesis alone.
 
-## Known blocker
+## Weights
 
-The graspnet-baseline weights are hosted only on Google Drive and Baidu Pan, and Drive
-periodically refuses the file programmatically — a per-file quota on Google's side that no
-retry or cookie handling fixes. Download `checkpoint-rs.tar` in a browser from
-<https://drive.google.com/file/d/1hd0G8LN6tRpi4742XOTEisbTXNZ-1jmk/view> and drop it at
-`third_party/checkpoints/checkpoint-rs.tar`.
+Present and verified: `checkpoint-rs.tar`, sha `60680087c61cba2b`, epoch 18, loss 0.561,
+162 tensors / 1.03 M params, **exact** state-dict key match. That key match is also the
+cheapest confirmation that `num_view=300 / num_angle=12 / num_depth=4 / cylinder_radius=0.05`
+are right — a wrong hyperparameter shows up as mismatched keys, not as bad grasps.
 
-Until then, `GRASP_ALLOW_RANDOM_WEIGHTS=1 ./serve_grasp.sh` exercises everything except the
-weights. `/health` reports `random_weights: true` and the eval refuses to score against it.
+Getting them is the one manual step. Upstream hosts them only on Google Drive and Baidu Pan,
+and Drive quota-refuses the file to every programmatic client (gdown 5.x and 6.x, a
+hand-rolled confirm-token curl, the Kinect alternate); no HuggingFace or fork mirror exists.
+Download in a browser from
+<https://drive.google.com/file/d/1hd0G8LN6tRpi4742XOTEisbTXNZ-1jmk/view>.
+
+**Do not let it be extracted.** A torch `.tar` is internally a ZIP, so archive managers
+unpack it into `archive/data.pkl` + `archive/data/*`, which `torch.load` cannot read. If
+`third_party/checkpoints/checkpoint-rs/` is a *directory*, that is what happened — copy the
+original file back.
+
+`GRASP_ALLOW_RANDOM_WEIGHTS=1 ./serve_grasp.sh` exercises everything except the weights;
+`/health` reports `random_weights: true` and the eval refuses to score against it.
+
+## Current result, and why it is not yet a verdict
+
+**0.083 `pick_success` / 0.000 `still_holding`** (n=12, 4 tasks × 3) against the diffusion
+policy's 0.333 / 0.322. This is preliminary and the pipeline is under-tuned.
+
+The attribution is the useful part: `no_grasp_proposed` 6–8/12, `unreachable` 2–4/12 — and in
+*every* `no_grasp_proposed` rollout the detector had returned 19–64 grasps that the selection
+layer then threw away. **The bottleneck is selection, not the network.**
+
+Four measured fixes took usable-grasp scenes from 4/12 to 7/12:
+
+| fix | why |
+|---|---|
+| crop the cloud to ±0.15 m around the object | uncropped, the *median* grasp landed 0.39 m away — the detector spent its capacity on counters and walls |
+| filter width at Panda's real 0.08, check the object cloud instead | GraspNet's `width` is inflated 1.2× and clamped at 0.1; a 0.075 cutoff killed every on-object grasp |
+| target on the **seed** point, not `t + depth·approach` | `pred_decode` sets `grasp_center = fp2_xyz`, sampled *from the input cloud*, so the seed coincides with object points to 0.0000 m |
+| server-side collision filtering off | redundant with, and worse-informed than, the client's object-cloud check; cut 64 candidates to 1–3 on sparse clouds (though on its own it changed nothing) |
+
+Remaining failures are scenes where the detector genuinely returns few candidates (croissant
+3, liquor 1) or the object is near-invisible (avocado, 559 points).
+
+### The biggest remaining gap: no IK
+
+There is **no IK solve, no reachability check and no path planning**. OSC resolves Cartesian
+commands through the Jacobian, so kinematics are not absent, but the executor drives a
+straight Cartesian line to the pose and only discovers failure after burning the stage
+budget — that is the `unreachable` bucket.
+
+`robosuite/utils/ik_utils.py:IKSolver` (damped least-squares, accepts base-frame targets) is
+the principled fix, and the bigger win is at **selection**: ask which of the 64 candidates
+have a joint solution rather than ranking them with the current hand-tuned
+`score + 0.6·downward − 0.25·reorient` heuristic. It can serve purely as an offline
+feasibility oracle while execution still goes through the stock OSC servo, so the env stays
+byte-identical and the baseline comparison survives.
+
+**Do not tune selection at n=3 per task.** Loosening a filter was observed to *increase*
+`no_grasp_proposed` (6 → 8), because cuDNN nondeterminism flips borderline candidates.
 
 ## Why a separate conda env
 
