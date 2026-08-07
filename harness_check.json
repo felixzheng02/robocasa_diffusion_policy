@@ -1,0 +1,32 @@
+[
+  {
+    "episode": 0,
+    "obj": "cereal",
+    "n_actions": 111,
+    "steps_run": 98,
+    "detector_fired": true,
+    "fired_at": 97,
+    "held_frames": 8,
+    "final_dz": 0.0208
+  },
+  {
+    "episode": 1,
+    "obj": "juice",
+    "n_actions": 93,
+    "steps_run": 82,
+    "detector_fired": true,
+    "fired_at": 81,
+    "held_frames": 9,
+    "final_dz": 0.0237
+  },
+  {
+    "episode": 2,
+    "obj": "mayonnaise",
+    "n_actions": 123,
+    "steps_run": 111,
+    "detector_fired": true,
+    "fired_at": 110,
+    "held_frames": 7,
+    "final_dz": 0.0226
+  }
+]

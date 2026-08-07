@@ -30,6 +30,12 @@ from typing import Dict, List
 
 
 from robocasa.utils.dataset_registry import DATASET_SOUP_REGISTRY
+from robocasa.utils.skill_utils import parse_task_string
+
+# Structured conditioning slots for the pick / place skill datasets. Each maps a shape_meta
+# obs key to the part of the episode's task string it is embedded from. A config declares
+# whichever slots that skill takes: pick uses obj_emb alone, place uses both.
+SLOT_KEYS = {"obj_emb": "obj", "recep_emb": "recep"}
 
 
 from robocasa.utils.groot_utils.groot_dataset import LeRobotSingleDataset, LE_ROBOT_MODALITY_FILENAME, ModalityConfig, LE_ROBOT_EPISODE_FILENAME, LeRobotMixtureDataset
@@ -113,10 +119,19 @@ class LerobotDataset(LeRobotSingleDataset, BaseImageDataset):
         lowdim_keys = dict()
         obs_shape_meta = copy.deepcopy(shape_meta['obs'])
         self.lang_emb = obs_shape_meta.pop('lang_emb', None)
-        if self.lang_emb is not None:
+        # structured slots, used by the pick / place skill datasets instead of lang_emb
+        self.slot_specs = {
+            key: obs_shape_meta.pop(key) for key in list(SLOT_KEYS) if key in obs_shape_meta
+        }
+        assert not (self.lang_emb is not None and self.slot_specs), \
+            "use either lang_emb or the structured slots, not both"
+        if self.lang_emb is not None or self.slot_specs:
             assert language_modality_keys, "Language modality keys should not be empty if lang_emb is defined"
             self._lang_encoder = lang_encoder
-            self._get_lang_embeddings()
+            if self.slot_specs:
+                self._get_slot_embeddings()
+            else:
+                self._get_lang_embeddings()
             if del_lang_encoder_after_init:
                 del self._lang_encoder
                 self._lang_encoder = None
@@ -154,7 +169,55 @@ class LerobotDataset(LeRobotSingleDataset, BaseImageDataset):
             emb_batch = TensorUtils.to_numpy(emb_batch)
             for batch_idx, ep in enumerate(ep_batch):
                 self._demo_id_to_demo_lang_emb[ep] = emb_batch[batch_idx]
-            
+
+    def _get_slot_embeddings(self):
+        """
+        Embed each conditioning slot separately.
+
+        Episodes in the skill datasets carry a structured task string
+        ("pick | obj: beer", "place | obj: beer | recep: cabinet"). Each slot's noun phrase
+        is embedded on its own, which is what lets obj and receptacle be swapped
+        independently at test time. The phrase vocabulary is tiny relative to the number of
+        episodes, so embed the unique phrases once and share them.
+        """
+        episode_path = self.dataset_path / LE_ROBOT_EPISODE_FILENAME
+        device = TorchUtils.get_torch_device(try_to_use_cuda=True)
+        if self._lang_encoder is None:
+            self._lang_encoder = LangUtils.LangEncoder(device=device)
+
+        with open(episode_path, "r") as f:
+            episode_metadata = [json.loads(line) for line in f]
+        id2task = {e["episode_index"]: e["tasks"][0] for e in episode_metadata}
+
+        # episode -> {slot name: noun phrase}
+        ep_slots = {}
+        for ep in self.trajectory_ids:
+            _, obj, recep = parse_task_string(id2task[ep])
+            slots = {"obj": obj, "recep": recep}
+            missing = [
+                key for key in self.slot_specs if slots[SLOT_KEYS[key]] is None
+            ]
+            assert not missing, f"episode {ep} task {id2task[ep]!r} has no {missing}"
+            ep_slots[ep] = slots
+
+        phrases = sorted({
+            ep_slots[ep][SLOT_KEYS[key]]
+            for ep in self.trajectory_ids
+            for key in self.slot_specs
+        })
+        embeddings = {}
+        for batch in np.array_split(phrases, int(math.ceil(len(phrases) / 64))):
+            batch = list(batch)
+            emb = TensorUtils.to_numpy(self._lang_encoder.get_lang_emb(batch))
+            embeddings.update(zip(batch, emb))
+
+        self._demo_id_to_slot_emb = {
+            ep: {
+                key: embeddings[ep_slots[ep][SLOT_KEYS[key]]] for key in self.slot_specs
+            }
+            for ep in self.trajectory_ids
+        }
+
     
 
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
@@ -186,7 +249,11 @@ class LerobotDataset(LeRobotSingleDataset, BaseImageDataset):
                 lang_emb,
                 (self.n_obs_steps, 1)
             ).astype(np.float32)
-        
+        elif self.slot_specs:
+            trajectory_id, _ = self.all_steps[idx]
+            for key, emb in self._demo_id_to_slot_emb[trajectory_id].items():
+                obs_dict[key] = np.tile(emb, (self.n_obs_steps, 1)).astype(np.float32)
+
         action_concat = []
 
         for lr_key in self.lerobot_action_keys:
@@ -248,14 +315,15 @@ class LerobotDataset(LeRobotSingleDataset, BaseImageDataset):
                 raise RuntimeError('unsupported')
             normalizer[key] = this_normalizer
         
-        # lang_emb
-        if self.lang_emb is not None:
-            dim = int(np.prod(self.lang_emb["shape"]))  
-            scale  = np.ones((dim,), dtype=np.float32)  
-            offset = np.zeros((dim,), dtype=np.float32) 
-            normalizer[LANG_EMB_KEY] = SingleFieldLinearNormalizer.create_manual(
-                scale=scale,
-                offset=offset,
+        # lang_emb / structured slots: passed through unnormalized
+        embedding_specs = (
+            {LANG_EMB_KEY: self.lang_emb} if self.lang_emb is not None else self.slot_specs
+        )
+        for emb_key, spec in embedding_specs.items():
+            dim = int(np.prod(spec["shape"]))
+            normalizer[emb_key] = SingleFieldLinearNormalizer.create_manual(
+                scale=np.ones((dim,), dtype=np.float32),
+                offset=np.zeros((dim,), dtype=np.float32),
                 input_stats_dict={}, #stat
             )
 
@@ -348,6 +416,9 @@ class LerobotCotrainingDataset(LeRobotMixtureDataset, BaseImageDataset):
         lowdim_keys = dict()
         obs_shape_meta = copy.deepcopy(shape_meta['obs'])
         self.lang_emb = obs_shape_meta.pop('lang_emb', None)
+        self.slot_specs = {
+            key: obs_shape_meta.pop(key) for key in list(SLOT_KEYS) if key in obs_shape_meta
+        }
         for key, attr in obs_shape_meta.items():
             type = attr.get('type', 'low_dim')
             if type == 'rgb':
@@ -424,14 +495,15 @@ class LerobotCotrainingDataset(LeRobotMixtureDataset, BaseImageDataset):
             else:
                 raise RuntimeError('unsupported')
             normalizer[key] = this_normalizer
-        # lang_emb
-        if self.lang_emb is not None:
-            dim = int(np.prod(self.lang_emb["shape"]))  
-            scale  = np.ones((dim,), dtype=np.float32)  
-            offset = np.zeros((dim,), dtype=np.float32) 
-            normalizer[LANG_EMB_KEY] = SingleFieldLinearNormalizer.create_manual(
-                scale=scale,
-                offset=offset,
+        # lang_emb / structured slots: passed through unnormalized
+        embedding_specs = (
+            {LANG_EMB_KEY: self.lang_emb} if self.lang_emb is not None else self.slot_specs
+        )
+        for emb_key, spec in embedding_specs.items():
+            dim = int(np.prod(spec["shape"]))
+            normalizer[emb_key] = SingleFieldLinearNormalizer.create_manual(
+                scale=np.ones((dim,), dtype=np.float32),
+                offset=np.zeros((dim,), dtype=np.float32),
                 input_stats_dict={}, #stat
             )
 

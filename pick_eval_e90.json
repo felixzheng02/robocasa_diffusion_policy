@@ -1,0 +1,1774 @@
+{
+  "summary": {
+    "PickPlaceCabinetToCounter": {
+      "n": 10,
+      "pick_success": 0.1,
+      "still_holding": 0.0,
+      "mean_steps_to_grasp": 61.0
+    },
+    "PickPlaceCounterToBlender": {
+      "n": 10,
+      "pick_success": 0.4,
+      "still_holding": 0.4,
+      "mean_steps_to_grasp": 149.5
+    },
+    "PickPlaceCounterToCabinet": {
+      "n": 10,
+      "pick_success": 0.2,
+      "still_holding": 0.2,
+      "mean_steps_to_grasp": 149.5
+    },
+    "PickPlaceCounterToDrawer": {
+      "n": 10,
+      "pick_success": 0.1,
+      "still_holding": 0.1,
+      "mean_steps_to_grasp": 121.0
+    },
+    "PickPlaceCounterToMicrowave": {
+      "n": 10,
+      "pick_success": 0.1,
+      "still_holding": 0.0,
+      "mean_steps_to_grasp": 107.0
+    },
+    "PickPlaceCounterToOven": {
+      "n": 10,
+      "pick_success": 0.7,
+      "still_holding": 0.7,
+      "mean_steps_to_grasp": 76.14285714285714
+    },
+    "PickPlaceCounterToSink": {
+      "n": 10,
+      "pick_success": 0.1,
+      "still_holding": 0.1,
+      "mean_steps_to_grasp": 108.0
+    },
+    "PickPlaceCounterToStandMixer": {
+      "n": 10,
+      "pick_success": 0.5,
+      "still_holding": 0.5,
+      "mean_steps_to_grasp": 98.4
+    },
+    "PickPlaceCounterToStove": {
+      "n": 10,
+      "pick_success": 0.2,
+      "still_holding": 0.2,
+      "mean_steps_to_grasp": 101.5
+    },
+    "PickPlaceCounterToToasterOven": {
+      "n": 10,
+      "pick_success": 0.8,
+      "still_holding": 0.7,
+      "mean_steps_to_grasp": 110.75
+    },
+    "PickPlaceDrawerToCounter": {
+      "n": 10,
+      "pick_success": 0.0,
+      "still_holding": 0.0,
+      "mean_steps_to_grasp": null
+    },
+    "PickPlaceFridgeDrawerToShelf": {
+      "n": 10,
+      "pick_success": 0.5,
+      "still_holding": 0.6,
+      "mean_steps_to_grasp": 146.4
+    },
+    "PickPlaceFridgeShelfToDrawer": {
+      "n": 10,
+      "pick_success": 0.5,
+      "still_holding": 0.5,
+      "mean_steps_to_grasp": 128.4
+    },
+    "PickPlaceMicrowaveToCounter": {
+      "n": 10,
+      "pick_success": 0.4,
+      "still_holding": 0.3,
+      "mean_steps_to_grasp": 108.0
+    },
+    "PickPlaceSinkToCounter": {
+      "n": 10,
+      "pick_success": 0.5,
+      "still_holding": 0.5,
+      "mean_steps_to_grasp": 103.6
+    },
+    "PickPlaceStoveToCounter": {
+      "n": 10,
+      "pick_success": 0.1,
+      "still_holding": 0.1,
+      "mean_steps_to_grasp": 92.0
+    },
+    "PickPlaceToasterOvenToCounter": {
+      "n": 10,
+      "pick_success": 0.5,
+      "still_holding": 0.5,
+      "mean_steps_to_grasp": 89.4
+    },
+    "PickPlaceToasterToCounter": {
+      "n": 10,
+      "pick_success": 0.3,
+      "still_holding": 0.4,
+      "mean_steps_to_grasp": 166.0
+    },
+    "AVERAGE": {
+      "pick_success": 0.33333333333333337,
+      "still_holding": 0.32222222222222224
+    }
+  },
+  "rollouts": {
+    "PickPlaceCabinetToCounter": [
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": -0.0003,
+        "obj": "spray"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "kettle"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": -0.0003,
+        "obj": "hotdog bun"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "wooden spoon"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 61,
+        "steps": 61,
+        "still_holding": false,
+        "final_dz": -0.0203,
+        "obj": "mustard"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "baguette"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "canned food"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "glass cup"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "condiment bottle"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": -0.0004,
+        "obj": "tomato"
+      }
+    ],
+    "PickPlaceCounterToBlender": [
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "tangerine"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": -0.0001,
+        "obj": "orange"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 223,
+        "steps": 223,
+        "still_holding": true,
+        "final_dz": 0.0245,
+        "obj": "peach"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "tangerine"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "apple"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 115,
+        "steps": 115,
+        "still_holding": true,
+        "final_dz": 0.0227,
+        "obj": "banana"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 121,
+        "steps": 121,
+        "still_holding": true,
+        "final_dz": 0.0265,
+        "obj": "banana"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": 0.0001,
+        "obj": "orange"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 139,
+        "steps": 139,
+        "still_holding": true,
+        "final_dz": 0.0253,
+        "obj": "mango"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "mango"
+      }
+    ],
+    "PickPlaceCounterToCabinet": [
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "paprika"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 99,
+        "steps": 99,
+        "still_holding": true,
+        "final_dz": 0.0222,
+        "obj": "croissant"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "liquor"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "cupcake"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "mustard"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 200,
+        "steps": 200,
+        "still_holding": true,
+        "final_dz": 0.023,
+        "obj": "baguette"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": 0.0028,
+        "obj": "jam"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "beer"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "condiment bottle"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "cheese"
+      }
+    ],
+    "PickPlaceCounterToDrawer": [
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "dish brush"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "tongs"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": -0.0001,
+        "obj": "wooden spoon"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "measuring cup"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "rolling pin"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": -0.001,
+        "obj": "ladle"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "whisk"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "peeler"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "peeler"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 121,
+        "steps": 121,
+        "still_holding": true,
+        "final_dz": 0.0203,
+        "obj": "whisk"
+      }
+    ],
+    "PickPlaceCounterToMicrowave": [
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 525,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "eggplant"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 525,
+        "still_holding": false,
+        "final_dz": -0.0002,
+        "obj": "hot dog"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 525,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "chicken drumstick"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 525,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "eggplant"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 107,
+        "steps": 107,
+        "still_holding": false,
+        "final_dz": 0.0206,
+        "obj": "kebab skewer"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 525,
+        "still_holding": false,
+        "final_dz": -0.0001,
+        "obj": "corn"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 525,
+        "still_holding": false,
+        "final_dz": 0.0002,
+        "obj": "garlic"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 525,
+        "still_holding": false,
+        "final_dz": 0.0002,
+        "obj": "kebab skewer"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 525,
+        "still_holding": false,
+        "final_dz": 0.0002,
+        "obj": "broccoli"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 525,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "shrimp"
+      }
+    ],
+    "PickPlaceCounterToOven": [
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 98,
+        "steps": 98,
+        "still_holding": true,
+        "final_dz": 0.021,
+        "obj": "fish"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 76,
+        "steps": 76,
+        "still_holding": true,
+        "final_dz": 0.0194,
+        "obj": "chicken drumstick"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "sweet potato"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 71,
+        "steps": 71,
+        "still_holding": true,
+        "final_dz": 0.0233,
+        "obj": "broccoli"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 66,
+        "steps": 66,
+        "still_holding": true,
+        "final_dz": 0.0262,
+        "obj": "chicken drumstick"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 75,
+        "steps": 75,
+        "still_holding": true,
+        "final_dz": 0.0297,
+        "obj": "corn"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": 0.0017,
+        "obj": "eggplant"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 83,
+        "steps": 83,
+        "still_holding": true,
+        "final_dz": 0.0204,
+        "obj": "fish"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0007,
+        "obj": "chicken drumstick"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 64,
+        "steps": 64,
+        "still_holding": true,
+        "final_dz": 0.0271,
+        "obj": "fish"
+      }
+    ],
+    "PickPlaceCounterToSink": [
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "bar soap"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0002,
+        "obj": "broccoli"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0001,
+        "obj": "measuring cup"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 108,
+        "steps": 108,
+        "still_holding": true,
+        "final_dz": 0.026,
+        "obj": "cup"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0021,
+        "obj": "lemon"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0002,
+        "obj": "rolling pin"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "wooden spoon"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0005,
+        "obj": "pear"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0007,
+        "obj": "strainer"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "peach"
+      }
+    ],
+    "PickPlaceCounterToStandMixer": [
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 102,
+        "steps": 102,
+        "still_holding": true,
+        "final_dz": 0.02,
+        "obj": "cake"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 79,
+        "steps": 79,
+        "still_holding": true,
+        "final_dz": 0.0308,
+        "obj": "cake"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 83,
+        "steps": 83,
+        "still_holding": true,
+        "final_dz": 0.0204,
+        "obj": "bread"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "cake"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 144,
+        "steps": 144,
+        "still_holding": true,
+        "final_dz": 0.0227,
+        "obj": "bread"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "bread"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 84,
+        "steps": 84,
+        "still_holding": true,
+        "final_dz": 0.0211,
+        "obj": "bread"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "bread"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0119,
+        "obj": "cheese"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "bread"
+      }
+    ],
+    "PickPlaceCounterToStove": [
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 109,
+        "steps": 109,
+        "still_holding": true,
+        "final_dz": 0.0298,
+        "obj": "chicken drumstick"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "lemon wedge"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0002,
+        "obj": "corn"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0004,
+        "obj": "mushroom"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 94,
+        "steps": 94,
+        "still_holding": true,
+        "final_dz": 0.0235,
+        "obj": "chicken drumstick"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "egg"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "cheese"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0004,
+        "obj": "potato"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "hotdog bun"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "chicken drumstick"
+      }
+    ],
+    "PickPlaceCounterToToasterOven": [
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 120,
+        "steps": 120,
+        "still_holding": false,
+        "final_dz": 0.0235,
+        "obj": "hotdog bun"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 117,
+        "steps": 117,
+        "still_holding": true,
+        "final_dz": 0.0193,
+        "obj": "bread"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 69,
+        "steps": 69,
+        "still_holding": true,
+        "final_dz": 0.0285,
+        "obj": "baguette"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "baguette"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 203,
+        "steps": 203,
+        "still_holding": true,
+        "final_dz": 0.0493,
+        "obj": "bread"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 92,
+        "steps": 92,
+        "still_holding": true,
+        "final_dz": 0.0205,
+        "obj": "bread"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 79,
+        "steps": 79,
+        "still_holding": true,
+        "final_dz": 0.0226,
+        "obj": "bread"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": 0.0035,
+        "obj": "hotdog bun"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 70,
+        "steps": 70,
+        "still_holding": true,
+        "final_dz": 0.0203,
+        "obj": "bread"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 136,
+        "steps": 136,
+        "still_holding": true,
+        "final_dz": 0.0227,
+        "obj": "bread"
+      }
+    ],
+    "PickPlaceDrawerToCounter": [
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "pizza cutter"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "tongs"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "pizza cutter"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "dish brush"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "pizza cutter"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "peeler"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "dish brush"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": -0.008,
+        "obj": "pizza cutter"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "tongs"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "pizza cutter"
+      }
+    ],
+    "PickPlaceFridgeDrawerToShelf": [
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0021,
+        "obj": "potato"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0025,
+        "obj": "onion"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 95,
+        "steps": 95,
+        "still_holding": true,
+        "final_dz": 0.0223,
+        "obj": "broccoli"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 108,
+        "steps": 108,
+        "still_holding": true,
+        "final_dz": 0.021,
+        "obj": "peach"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 118,
+        "steps": 118,
+        "still_holding": true,
+        "final_dz": 0.0272,
+        "obj": "squash"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "lemon"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 172,
+        "steps": 172,
+        "still_holding": true,
+        "final_dz": 0.021,
+        "obj": "kiwi"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 239,
+        "steps": 239,
+        "still_holding": true,
+        "final_dz": 0.0236,
+        "obj": "mushroom"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": true,
+        "final_dz": -0.0007,
+        "obj": "bell pepper"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0034,
+        "obj": "potato"
+      }
+    ],
+    "PickPlaceFridgeShelfToDrawer": [
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 129,
+        "steps": 129,
+        "still_holding": true,
+        "final_dz": 0.0276,
+        "obj": "sweet potato"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0002,
+        "obj": "lemon"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 111,
+        "steps": 111,
+        "still_holding": true,
+        "final_dz": 0.0234,
+        "obj": "sweet potato"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 108,
+        "steps": 108,
+        "still_holding": true,
+        "final_dz": -0.0297,
+        "obj": "tomato"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 163,
+        "steps": 163,
+        "still_holding": true,
+        "final_dz": -0.0252,
+        "obj": "lemon"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0021,
+        "obj": "lemon"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0074,
+        "obj": "pear"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0002,
+        "obj": "onion"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 131,
+        "steps": 131,
+        "still_holding": true,
+        "final_dz": 0.0205,
+        "obj": "avocado"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": 0.0001,
+        "obj": "avocado"
+      }
+    ],
+    "PickPlaceMicrowaveToCounter": [
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 94,
+        "steps": 94,
+        "still_holding": true,
+        "final_dz": 0.0203,
+        "obj": "cheese"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 72,
+        "steps": 72,
+        "still_holding": true,
+        "final_dz": 0.0248,
+        "obj": "squash"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": -0.0002,
+        "obj": "chicken drumstick"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "eggplant"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "kebab skewer"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 149,
+        "steps": 149,
+        "still_holding": true,
+        "final_dz": 0.0233,
+        "obj": "tomato"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": -0.0003,
+        "obj": "garlic"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 117,
+        "steps": 117,
+        "still_holding": false,
+        "final_dz": 0.0236,
+        "obj": "eggplant"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": -1.4335,
+        "obj": "broccoli"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 375,
+        "still_holding": false,
+        "final_dz": 0.0019,
+        "obj": "broccoli"
+      }
+    ],
+    "PickPlaceSinkToCounter": [
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 450,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "egg"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 112,
+        "steps": 112,
+        "still_holding": true,
+        "final_dz": 0.0252,
+        "obj": "carrot"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 450,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "shrimp"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 450,
+        "still_holding": false,
+        "final_dz": 0.002,
+        "obj": "eggplant"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 89,
+        "steps": 89,
+        "still_holding": true,
+        "final_dz": 0.0266,
+        "obj": "tomato"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 450,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "milk"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 91,
+        "steps": 91,
+        "still_holding": true,
+        "final_dz": 0.0341,
+        "obj": "orange"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 83,
+        "steps": 83,
+        "still_holding": true,
+        "final_dz": 0.0262,
+        "obj": "cucumber"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 143,
+        "steps": 143,
+        "still_holding": true,
+        "final_dz": 0.0249,
+        "obj": "broccoli"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 450,
+        "still_holding": false,
+        "final_dz": 0.0013,
+        "obj": "kiwi"
+      }
+    ],
+    "PickPlaceStoveToCounter": [
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": -0.0003,
+        "obj": "broccoli"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": -0.0008,
+        "obj": "hot dog"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 92,
+        "steps": 92,
+        "still_holding": true,
+        "final_dz": 0.0233,
+        "obj": "mango"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "bell pepper"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": -0.0029,
+        "obj": "broccoli"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "onion"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": 0.0001,
+        "obj": "garlic"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": -0.0001,
+        "obj": "shrimp"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "lemon wedge"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": -0.0007,
+        "obj": "mushroom"
+      }
+    ],
+    "PickPlaceToasterOvenToCounter": [
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 87,
+        "steps": 87,
+        "still_holding": true,
+        "final_dz": 0.0245,
+        "obj": "baguette"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 82,
+        "steps": 82,
+        "still_holding": true,
+        "final_dz": 0.0228,
+        "obj": "bread"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "hotdog bun"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "bread"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 110,
+        "steps": 110,
+        "still_holding": true,
+        "final_dz": 0.0217,
+        "obj": "bread"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 66,
+        "steps": 66,
+        "still_holding": true,
+        "final_dz": 0.0255,
+        "obj": "hotdog bun"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 102,
+        "steps": 102,
+        "still_holding": true,
+        "final_dz": 0.0267,
+        "obj": "bread"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "bread"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "hotdog bun"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 225,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "bread"
+      }
+    ],
+    "PickPlaceToasterToCounter": [
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "sandwich bread"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 122,
+        "steps": 122,
+        "still_holding": true,
+        "final_dz": 0.0302,
+        "obj": "sandwich bread"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 93,
+        "steps": 93,
+        "still_holding": true,
+        "final_dz": 0.0451,
+        "obj": "sandwich bread"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "sandwich bread"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0,
+        "obj": "sandwich bread"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "sandwich bread"
+      },
+      {
+        "pick_success": true,
+        "task_success": false,
+        "handoff_step": 283,
+        "steps": 283,
+        "still_holding": true,
+        "final_dz": 0.0457,
+        "obj": "sandwich bread"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": 0.0,
+        "obj": "sandwich bread"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": false,
+        "final_dz": -0.0097,
+        "obj": "sandwich bread"
+      },
+      {
+        "pick_success": false,
+        "task_success": false,
+        "handoff_step": null,
+        "steps": 300,
+        "still_holding": true,
+        "final_dz": -0.0017,
+        "obj": "sandwich bread"
+      }
+    ]
+  }
+}

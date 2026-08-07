@@ -9,6 +9,7 @@ from robomimic.macros import LANG_EMB_KEY
 from robomimic.utils.lang_utils import LangEncoder
 from robomimic.utils.obs_utils import process_frame
 from robocasa.utils.env_utils import convert_action
+from diffusion_policy.dataset.lerobot_dataset import SLOT_KEYS
 
 
 class RobomimicImageWrapper(gym.Env):
@@ -30,6 +31,10 @@ class RobomimicImageWrapper(gym.Env):
         self.lang = None
         self.lang_emb = None
         self.lang_encoder = LangEncoder('cpu')
+        # structured conditioning slots (obj_emb / recep_emb). Set by the caller, e.g. the
+        # chained pick->place evaluator, which swaps them at the handoff. When these are in
+        # use the episode's own combined instruction is ignored.
+        self.slot_embs = dict()
         
         # setup spaces
         action_shape = shape_meta['action']['shape']
@@ -54,7 +59,7 @@ class RobomimicImageWrapper(gym.Env):
             elif key.endswith('pos'):
                 # better range?
                 min_value, max_value = -1, 1
-            elif key == LANG_EMB_KEY:
+            elif key == LANG_EMB_KEY or key in SLOT_KEYS:
                 min_value, max_value = -100, 100
             elif key.endswith('sin'):
                 min_value, max_value = -1, 1
@@ -94,9 +99,12 @@ class RobomimicImageWrapper(gym.Env):
     def get_observation(self, raw_obs=None):
         assert raw_obs is not None, "raw_obs must be provided"
         raw_obs = self.process_obs(raw_obs)
-        assert self.lang is not None
-        raw_obs[LANG_EMB_KEY] = self.lang_emb
-        
+        if self.slot_embs:
+            raw_obs.update(self.slot_embs)
+        else:
+            assert self.lang is not None
+            raw_obs[LANG_EMB_KEY] = self.lang_emb
+
         self.render_cache = raw_obs[self.render_obs_key]
 
         obs = dict()
@@ -135,6 +143,9 @@ class RobomimicImageWrapper(gym.Env):
         #     # random reset
         #     raw_obs = self.env.reset()
         raw_obs, info = self.env.reset()
+        # kept so a caller that only learns its conditioning after reset (the chained
+        # evaluator reads the episode's objects) can re-derive the observation
+        self.last_raw_obs = raw_obs
         self.lang = raw_obs["annotation.human.task_description"]
         self.lang_emb = self.lang_encoder.get_lang_emb(self.lang).numpy()
 

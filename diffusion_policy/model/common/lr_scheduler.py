@@ -1,7 +1,12 @@
-from diffusers.optimization import (
-    Union, SchedulerType, Optional,
-    Optimizer, TYPE_TO_SCHEDULER_FUNCTION
-)
+# Union/Optional/Optimizer used to be re-exported by diffusers.optimization, which is how
+# this module imported them under the pinned diffusers==0.11.1. Newer diffusers (0.39 here)
+# dropped those re-exports, so take them from their real homes. SchedulerType and
+# TYPE_TO_SCHEDULER_FUNCTION are still diffusers'.
+from typing import Optional, Union
+
+from torch.optim import Optimizer
+
+from diffusers.optimization import SchedulerType, TYPE_TO_SCHEDULER_FUNCTION
 
 def get_scheduler(
     name: Union[str, SchedulerType],
