@@ -55,8 +55,8 @@ OUTCOMES = ("success", "grasped_then_dropped", "executed_no_contact",
 
 def plan_grasp(sim, args):
     """Pick a grasp for this scene. Returns (grasp_dict|None, diagnostics)."""
-    diag = {"camera": None, "mask_px": {}, "n_points": 0,
-            "n_grasps_raw": 0, "n_grasps_kept": 0, "detect_latency_s": 0.0}
+    diag = {"camera": None, "mask_px": {}, "n_points": 0, "n_grasps_raw": 0,
+            "n_grasps_kept": 0, "reject": {}, "detect_latency_s": 0.0}
 
     if args.pose_source == "oracle":
         got = oracle_grasp(sim)
@@ -96,8 +96,9 @@ def plan_grasp(sim, args):
     diag["n_grasps_raw"] = int(len(grasps))
 
     E = GP.CU.get_camera_extrinsic_matrix(sim.sim, cam)
-    ranked = GP.select_grasp(grasps, E, obj_world, sim)
+    ranked, reasons = GP.select_grasp(grasps, E, obj_world, sim)
     diag["n_grasps_kept"] = len(ranked)
+    diag["reject"] = {k: v for k, v in reasons.items() if v}
     return (ranked[0] if ranked else None), diag
 
 

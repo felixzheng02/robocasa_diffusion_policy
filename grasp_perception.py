@@ -118,7 +118,7 @@ def unproject(sim, camera, dm, mask, width, height, depth_tol=0.10):
 WORKSPACE_R = 0.15
 
 
-def scene_cloud(sim, camera, dm, width, height, stride=2, max_range=2.5,
+def scene_cloud(sim, camera, dm, width, height, stride=1, max_range=2.5,
                 centre_cam=None, radius=WORKSPACE_R):
     """
     The visible scene as a camera-frame cloud, cropped to a workspace box.
@@ -132,6 +132,12 @@ def scene_cloud(sim, camera, dm, width, height, stride=2, max_range=2.5,
     Cropping to +-0.25 m around the object concentrates the 20k sampled points the network
     sees onto the object and its immediate support. This is the same idea as graspnet's own
     demo workspace mask and AnyGrasp's `lims` argument, so it transfers to that backend.
+
+    `stride` is 1, not 2. Subsampling made sense when the whole scene was being sent; once
+    the crop is applied it just starves the network -- cropped clouds were coming out at
+    1400-3500 points, and the scenes where the detector returned only 1-3 raw grasps were
+    exactly the sparse ones. The crop happens after extraction, so the cost is one numpy
+    pass over the full depth image.
     """
     ys, xs = np.mgrid[0:height:stride, 0:width:stride]
     ys, xs = ys.ravel(), xs.ravel()
@@ -210,8 +216,9 @@ def select_grasp(grasps, E, obj_points_world, env, max_width=MAX_GRIPPER_WIDTH,
 
     Returns a list of dicts sorted best-first.
     """
+    reasons = {"width_pred": 0, "off_object": 0, "no_enclosure": 0, "too_wide": 0}
     if grasps is None or len(grasps) == 0 or len(obj_points_world) == 0:
-        return []
+        return [], reasons
 
     sid = env.robots[0].eef_site_id["right"]
     R_cur = np.asarray(env.sim.data.site_xmat[sid]).reshape(3, 3)
@@ -220,12 +227,14 @@ def select_grasp(grasps, E, obj_points_world, env, max_width=MAX_GRIPPER_WIDTH,
     for i, g in enumerate(np.atleast_2d(grasps)):
         width = float(g[W.WIDTH])
         if width > max_width:
-            continue                      # will not close on this object
+            reasons["width_pred"] += 1    # will not close on this object
+            continue
         pos, R_eef, approach, seed = grasp_to_world(g, E)
         # Target on the seed point, not the offset grasp point -- see grasp_to_world.
         d_obj = float(np.min(np.linalg.norm(obj_points_world - seed, axis=1)))
         if d_obj > max_obj_dist:
-            continue                      # a grasp on the counter, a distractor, a wall
+            reasons["off_object"] += 1    # a grasp on the counter, a distractor, a wall
+            continue
 
         # What the jaws would actually enclose, measured from the object's own points
         # rather than trusted from the detector's inflated width prediction. Doubles as a
@@ -235,9 +244,11 @@ def select_grasp(grasps, E, obj_points_world, env, max_width=MAX_GRIPPER_WIDTH,
         local = (obj_points_world - pos) @ R_eef      # columns of R_eef are the eef axes
         near = local[(np.abs(local[:, 2]) < 0.04) & (np.abs(local[:, 0]) < 0.05)]
         if len(near) < 1:
+            reasons["no_enclosure"] += 1
             continue
         true_w = float(np.ptp(near[:, 0]))            # extent along the closing axis (+-x)
         if true_w > MAX_TRUE_WIDTH:
+            reasons["too_wide"] += 1
             continue
         R_eef = pick_symmetric(R_eef, R_cur)
         out.append({
@@ -268,4 +279,4 @@ def select_grasp(grasps, E, obj_points_world, env, max_width=MAX_GRIPPER_WIDTH,
         return -(d["score"] + 0.6 * d["downward"] - 0.25 * d["reorient"])
 
     out.sort(key=rank)
-    return out
+    return out, reasons
