@@ -165,7 +165,9 @@ class TrainDiffusionTransformerHybridWorkspace(BaseWorkspace):
             num_training_steps=num_training_steps,
             # pytorch assumes stepping LRScheduler every epoch
             # however huggingface diffusers steps it every batch
-            last_epoch=self.global_step-1
+            # the scheduler only steps once per gradient_accumulate_every global
+            # steps, so resuming must count scheduler steps, not global steps
+            last_epoch=(self.global_step // cfg.training.gradient_accumulate_every)-1
         )
 
         # configure ema
