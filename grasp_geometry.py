@@ -198,30 +198,37 @@ def _side_grasp(env, pts, approach, max_width, core_r, min_core):
 def oracle_grasp(env, obj_name="obj", max_width=0.075, min_free=0.20,
                  core_r=0.02, min_core=3):
     """
-    The best ground-truth grasp for this scene, trying several approach directions.
+    The best ground-truth grasp for this scene: a top-down grasp when one exists, else the
+    best side grasp that has room for the wrist.
 
-    Top-down is preferred -- it is the most often reachable with a fixed base and least
-    likely to sweep the object aside -- but it is not always *possible*: measured, a
-    top-down approach into a drawer has only 0.188 m of clearance before the counter above
-    it, and all three `PickPlaceDrawerToCounter` oracle rollouts failed while every
-    open-surface task scored 1.00. Approaches are therefore gated on measured free space,
-    and horizontal ones are tried when the vertical corridor is closed.
+    Top-down is tried first and wins whenever it returns anything -- see the comment below,
+    which records the measurement that settled it. Side grasps exist because top-down is
+    sometimes geometrically impossible: a top-down approach into a drawer has only 0.188 m
+    of clearance before the counter above it, and every `PickPlaceDrawerToCounter` oracle
+    rollout failed while open-surface tasks scored 1.00.
 
-    This also matters for the *detector* arm: AnyGrasp proposes horizontal grasps freely,
-    so the executor has to handle them, and an oracle that only ever goes straight down
-    would understate what is achievable and misattribute the gap to the detector.
+    Side grasps also matter for the *detector* arm, which is the real reason to keep them:
+    AnyGrasp proposes horizontal grasps freely, so the executor has to handle them, and an
+    oracle that could only ever go straight down would understate what is achievable and
+    misattribute the shortfall to the detector.
     """
     pts = object_points(env, obj_name)
     if len(pts) < 20:
         return None
     centre = pts.mean(axis=0)
 
-    down = np.array([0.0, 0.0, -1.0])
-    if free_space(env, centre, -down, obj_name) >= min_free:
-        got = top_down_grasp(env, obj_name, max_width=max_width,
-                             core_r=core_r, min_core=min_core)
-        if got is not None:
-            return got
+    # Top-down first, and *unconditionally* -- no free-space precondition.
+    #
+    # Gating it on clearance was measured and made things worse: oracle pick rate fell
+    # 0.556 -> 0.389 over the same 18 rollouts, with CounterToSink collapsing 1.00 -> 0.33,
+    # because the ray test rejected top-down approaches that in fact worked and substituted
+    # a cruder centroid-based side grasp. The slice-based top-down grasp is simply better
+    # when it exists, so side grasps are a fallback for when it does not, not an
+    # alternative to be ranked against it.
+    got = top_down_grasp(env, obj_name, max_width=max_width,
+                         core_r=core_r, min_core=min_core)
+    if got is not None:
+        return got
 
     sid = env.robots[0].eef_site_id["right"]
     R_cur = np.asarray(env.sim.data.site_xmat[sid]).reshape(3, 3)

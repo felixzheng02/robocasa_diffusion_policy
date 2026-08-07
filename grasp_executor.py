@@ -213,10 +213,12 @@ class GraspExecutor:
             elif self.stage_step >= cap:
                 self._advance(env, pos_err, rot_err)
 
-        else:  # close / lift / hold are purely time-based
-            if self.stage == "lift" and SU.is_holding_obj(env) is False and self.stage_step >= cap:
-                self._advance(env, pos_err, rot_err)
-            elif self.stage_step >= cap:
+        else:
+            # close / lift / hold are purely time-based. In particular `lift` is NOT cut
+            # short when the object is not held: a failed grasp still has to spend the lift
+            # so that GraspMoveDetector sees the same window it would on a success, and
+            # `still_holding` is read at the true final step.
+            if self.stage_step >= cap:
                 self._advance(env, pos_err, rot_err)
 
         return a
