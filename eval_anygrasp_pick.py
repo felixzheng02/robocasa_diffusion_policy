@@ -205,6 +205,13 @@ def main():
                           f"start ./serve_grasp.sh first", "red"))
             return
         backend = health.get("backend")
+        if health.get("random_weights"):
+            # The server is up but has no checkpoint. Its grasps are noise, and a sweep
+            # against them would produce a real-looking number that means nothing.
+            print(colored("server is running on RANDOM weights (no checkpoint) — "
+                          "refusing to score.\nfetch the weights with ./fetch_checkpoint.sh "
+                          "and restart the server.", "red"))
+            return
         print(colored(f"backend: {backend}  checkpoint={health.get('sha256')}  "
                       f"selftest={health.get('selftest_grasps')}", "cyan"))
 

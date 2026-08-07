@@ -38,11 +38,21 @@ if [ ! -d "$GRASPNET_ROOT" ]; then
     exit 1
 fi
 
+export GRASP_ALLOW_RANDOM_WEIGHTS="${GRASP_ALLOW_RANDOM_WEIGHTS:-0}"
+
 if [ "$GRASP_BACKEND" = "graspnet-baseline" ] && [ ! -f "$GRASP_CHECKPOINT" ]; then
-    echo "checkpoint missing: $GRASP_CHECKPOINT" >&2
-    echo "fetch it with:" >&2
-    echo "  $GRASP_ENV/bin/gdown 1hd0G8LN6tRpi4742XOTEisbTXNZ-1jmk -O $GRASP_CHECKPOINT" >&2
-    exit 1
+    if [ "$GRASP_ALLOW_RANDOM_WEIGHTS" = "1" ]; then
+        # Plumbing-only: exercises the import shim, wire format, client and executor while
+        # the weights are fetched by hand. /health reports random_weights=true and the eval
+        # refuses to score against it, so this cannot be mistaken for a real run.
+        echo "WARNING: no checkpoint — serving RANDOM weights (plumbing test only)" >&2
+    else
+        echo "checkpoint missing: $GRASP_CHECKPOINT" >&2
+        echo "fetch it with  ./fetch_checkpoint.sh rs" >&2
+        echo "(Google Drive often refuses this file; the script prints the browser fallback)" >&2
+        echo "to test the plumbing meanwhile: GRASP_ALLOW_RANDOM_WEIGHTS=1 ./serve_grasp.sh" >&2
+        exit 1
+    fi
 fi
 
 # Import torch before the compiled extension: pointnet2._ext links against libc10.so and

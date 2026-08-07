@@ -40,6 +40,7 @@ CHECKPOINT = os.environ.get(
     "GRASP_CHECKPOINT",
     "/home/felix/Desktop/robocasa_sim/third_party/checkpoints/checkpoint-rs.tar")
 BACKEND = os.environ.get("GRASP_BACKEND", "graspnet-baseline")
+ALLOW_RANDOM_WEIGHTS = os.environ.get("GRASP_ALLOW_RANDOM_WEIGHTS", "0") == "1"
 NUM_POINT = 20000
 
 
@@ -86,6 +87,19 @@ def _load_graspnet():
                    hmax_list=[0.01, 0.02, 0.03, 0.04], is_training=False)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     net.to(device)
+
+    if ALLOW_RANDOM_WEIGHTS and not os.path.exists(CHECKPOINT):
+        # Plumbing-only mode. Upstream hosts the weights solely on Google Drive, which
+        # periodically refuses programmatic download (a per-file quota on Google's side),
+        # so this exists to prove the import shim, sys.path, wire format, client and
+        # executor all work while the weights are being fetched by hand. The grasps it
+        # produces are MEANINGLESS -- /health reports random_weights=true and the eval
+        # refuses to score with it.
+        print("[grasp_server] WARNING: no checkpoint, serving RANDOM weights "
+              "(plumbing test only, grasps are meaningless)", flush=True)
+        net.eval()
+        return net, pred_decode, device
+
     # weights_only=False explicitly: the default flipped in torch 2.6 and would refuse
     # this checkpoint outright, so being explicit survives a future bump.
     ckpt = torch.load(CHECKPOINT, map_location=device, weights_only=False)
@@ -256,8 +270,9 @@ def _startup():
     # sweep silently scoring `no_grasp_proposed` because a path was wrong -- into a server
     # that refuses to start.
     n = DETECTOR.detect(_selftest_cloud(), top_k=16)
+    app.state.random_weights = bool(ALLOW_RANDOM_WEIGHTS and not os.path.exists(CHECKPOINT))
     print(f"[grasp_server] backend={DETECTOR.name} selftest_grasps={len(n)}", flush=True)
-    if len(n) == 0:
+    if len(n) == 0 and not getattr(app.state, "random_weights", False):
         raise RuntimeError("self-test found no grasps on a synthetic box -- refusing to serve")
     app.state.selftest = int(len(n))
 
@@ -282,7 +297,8 @@ def health():
             "device": str(next(DETECTOR.net.parameters()).device)
             if hasattr(DETECTOR, "net") else "unknown",
             "schema": W.SCHEMA,
-            "selftest_grasps": getattr(app.state, "selftest", None)}
+            "selftest_grasps": getattr(app.state, "selftest", None),
+            "random_weights": getattr(app.state, "random_weights", False)}
 
 
 @app.post("/detect")
