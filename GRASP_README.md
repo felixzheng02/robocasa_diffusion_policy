@@ -68,8 +68,43 @@ Each of these silently produces a plausible wrong answer, so none should be "sim
 | 2 px erosion + depth-median rejection | silhouette pixels smear the cloud down the viewing ray: a 5 cm object measured **63 cm** across |
 | adaptive camera choice | `CounterToMicrowave` shows **0** object pixels from `agentview_right`; a fixed camera loses whole tasks |
 | gripper closes only above **0.5** | the conventional −1/+1 leaves it open forever, silently |
-| symmetry pick (`R` vs `R·Rz(π)`) | a parallel jaw is symmetric; picking the nearer twin moved oracle pick rate **0.222 → 0.556** by removing wrist-reorientation timeouts |
-| top-down preferred over side grasps | gating top-down on ray-measured clearance was tried and made it **worse** (0.556 → 0.389); side grasps are a fallback, not an alternative |
+| symmetry pick (`R` vs `R·Rz(π)`) | a parallel jaw is symmetric; picking the nearer twin moved oracle pick rate **0.222 → 0.556** (n=9, 3 tasks) by removing wrist-reorientation timeouts — `unreachable` failures fell 4 → 1 |
+| top-down preferred over side grasps | gating top-down on ray-measured clearance was tried and made it **worse** (0.556 → 0.389, n=18); side grasps are a fallback, not an alternative |
+
+## Oracle executor status — read this before interpreting a detector number
+
+Current, over 6 tasks × 3 seeds (n=18): **`fired` 0.500 / `still_holding` 0.444**.
+
+The average is the least interesting part of it. The split is not:
+
+| | oracle `fired` |
+|---|---|
+| `CounterToOven` | 1.00 |
+| `SinkToCounter` | 1.00 |
+| `CounterToSink` | 0.67 |
+| `CounterToCabinet` | 0.33 |
+| `DrawerToCounter` | **0.00** |
+| `MicrowaveToCounter` | **0.00** |
+
+Open surfaces are solved; **enclosed fixtures are not**, and the failures there are almost
+entirely `unreachable` — the arm cannot get the wrist to the pre-grasp pose with the base
+fixed. All three `MicrowaveToCounter` failures show pre-grasp position errors of
+0.085–0.222 m, and the object sits at z = 1.17 m inside a wall-mounted unit. Ray casting
+confirms this is *not* an occluded approach corridor (0.339 m of clearance straight up); it
+is arm reach.
+
+Two consequences:
+
+1. **This bounds what any detector can score here.** A detector arm cannot beat the oracle
+   on tasks the executor cannot reach, so `unreachable` should be read as a property of the
+   base-fixed constraint, not of the grasp detector. The `outcome` histogram is what keeps
+   the two separable.
+2. **Lifting the fixed-base restriction is the single highest-value follow-up** — it targets
+   the dominant failure bucket directly. That is a deliberate scope choice, not an oversight.
+
+Caveat: n=3 per task, so per-task rates move in steps of 0.33 and small differences between
+executor variants are inside the noise. The open-surface / enclosed-fixture split, however,
+reproduced across all three measurement rounds.
 
 ## Verified
 

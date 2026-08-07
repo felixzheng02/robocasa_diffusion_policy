@@ -1,0 +1,363 @@
+[
+  {
+    "task": "PickPlaceCounterToCabinet",
+    "seed": 100000,
+    "gt": [
+      4.036,
+      -0.495,
+      1.011
+    ],
+    "cameras": {
+      "robot0_agentview_left": {
+        "mask_px": 798,
+        "n_points": 764,
+        "centroid_err": 0.0228,
+        "extent": [
+          0.08,
+          0.07,
+          0.127
+        ],
+        "depth_range": [
+          0.361,
+          1.857
+        ],
+        "used": true
+      },
+      "robot0_agentview_right": {
+        "mask_px": 241,
+        "n_points": 240,
+        "centroid_err": 0.0248,
+        "extent": [
+          0.077,
+          0.065,
+          0.125
+        ],
+        "depth_range": [
+          0.381,
+          1.857
+        ],
+        "used": true
+      },
+      "robot0_agentview_center": {
+        "mask_px": 18,
+        "n_points": 4,
+        "centroid_err": 0.1301,
+        "extent": [
+          0.047,
+          0.241,
+          0.0
+        ],
+        "depth_range": [
+          0.559,
+          1.811
+        ],
+        "used": false
+      }
+    },
+    "cross_camera_max": 0.0219,
+    "best_px": 798,
+    "used_cameras": [
+      "robot0_agentview_left",
+      "robot0_agentview_right"
+    ],
+    "pass": true,
+    "failures": []
+  },
+  {
+    "task": "PickPlaceCabinetToCounter",
+    "seed": 100000,
+    "gt": [
+      5.418,
+      -6.686,
+      1.525
+    ],
+    "cameras": {
+      "robot0_agentview_left": {
+        "mask_px": 1349,
+        "n_points": 1349,
+        "centroid_err": 0.0288,
+        "extent": [
+          0.067,
+          0.049,
+          0.215
+        ],
+        "depth_range": [
+          0.44,
+          2.273
+        ],
+        "used": true
+      },
+      "robot0_agentview_right": {
+        "mask_px": 1234,
+        "n_points": 1234,
+        "centroid_err": 0.0382,
+        "extent": [
+          0.051,
+          0.049,
+          0.216
+        ],
+        "depth_range": [
+          0.471,
+          2.056
+        ],
+        "used": true
+      },
+      "robot0_agentview_center": {
+        "mask_px": 1630,
+        "n_points": 1630,
+        "centroid_err": 0.0366,
+        "extent": [
+          0.023,
+          0.049,
+          0.168
+        ],
+        "depth_range": [
+          0.559,
+          2.227
+        ],
+        "used": true
+      }
+    },
+    "cross_camera_max": 0.0175,
+    "best_px": 1630,
+    "used_cameras": [
+      "robot0_agentview_left",
+      "robot0_agentview_right",
+      "robot0_agentview_center"
+    ],
+    "pass": true,
+    "failures": []
+  },
+  {
+    "task": "PickPlaceCounterToMicrowave",
+    "seed": 100000,
+    "gt": [
+      3.295,
+      -2.872,
+      0.964
+    ],
+    "cameras": {
+      "robot0_agentview_left": {
+        "mask_px": 456,
+        "n_points": 456,
+        "centroid_err": 0.026,
+        "extent": [
+          0.059,
+          0.101,
+          0.037
+        ],
+        "depth_range": [
+          0.343,
+          1.672
+        ],
+        "used": true
+      },
+      "robot0_agentview_right": {
+        "mask_px": 24,
+        "n_points": 20,
+        "centroid_err": 0.1388,
+        "extent": [
+          0.454,
+          1.04,
+          0.292
+        ],
+        "depth_range": [
+          0.456,
+          1.937
+        ],
+        "used": false
+      },
+      "robot0_agentview_center": {
+        "mask_px": 53,
+        "n_points": 53,
+        "centroid_err": 0.0523,
+        "extent": [
+          0.012,
+          0.044,
+          0.011
+        ],
+        "depth_range": [
+          0.485,
+          1.793
+        ],
+        "used": false
+      }
+    },
+    "cross_camera_max": null,
+    "best_px": 456,
+    "used_cameras": [
+      "robot0_agentview_left"
+    ],
+    "pass": true,
+    "failures": []
+  },
+  {
+    "task": "PickPlaceDrawerToCounter",
+    "seed": 100000,
+    "gt": [
+      2.632,
+      -0.772,
+      0.732
+    ],
+    "cameras": {
+      "robot0_agentview_left": {
+        "mask_px": 239,
+        "n_points": 239,
+        "centroid_err": 0.0675,
+        "extent": [
+          0.054,
+          0.088,
+          0.024
+        ],
+        "depth_range": [
+          0.465,
+          1.954
+        ],
+        "used": true
+      },
+      "robot0_agentview_right": {
+        "mask_px": 7,
+        "n_points": 4,
+        "centroid_err": 0.0269,
+        "extent": [
+          0.005,
+          0.009,
+          0.003
+        ],
+        "depth_range": [
+          0.465,
+          1.893
+        ],
+        "used": false
+      },
+      "robot0_agentview_center": {
+        "mask_px": 319,
+        "n_points": 319,
+        "centroid_err": 0.0665,
+        "extent": [
+          0.054,
+          0.087,
+          0.021
+        ],
+        "depth_range": [
+          0.554,
+          2.019
+        ],
+        "used": true
+      }
+    },
+    "cross_camera_max": 0.0029,
+    "best_px": 319,
+    "used_cameras": [
+      "robot0_agentview_left",
+      "robot0_agentview_center"
+    ],
+    "pass": true,
+    "failures": []
+  },
+  {
+    "task": "PickPlaceCounterToOven",
+    "seed": 100000,
+    "gt": [
+      2.811,
+      -2.609,
+      0.96
+    ],
+    "cameras": {
+      "robot0_agentview_left": {
+        "mask_px": 586,
+        "n_points": 586,
+        "centroid_err": 0.0217,
+        "extent": [
+          0.119,
+          0.126,
+          0.028
+        ],
+        "depth_range": [
+          0.469,
+          4.114
+        ],
+        "used": true
+      },
+      "robot0_agentview_right": {
+        "mask_px": 449,
+        "n_points": 449,
+        "centroid_err": 0.0325,
+        "extent": [
+          0.087,
+          0.123,
+          0.037
+        ],
+        "depth_range": [
+          0.469,
+          4.593
+        ],
+        "used": true
+      },
+      "robot0_agentview_center": {
+        "mask_px": 0,
+        "used": false
+      }
+    },
+    "cross_camera_max": 0.0143,
+    "best_px": 586,
+    "used_cameras": [
+      "robot0_agentview_left",
+      "robot0_agentview_right"
+    ],
+    "pass": true,
+    "failures": []
+  },
+  {
+    "task": "PickPlaceSinkToCounter",
+    "seed": 100000,
+    "gt": [
+      3.576,
+      -1.594,
+      0.831
+    ],
+    "cameras": {
+      "robot0_agentview_left": {
+        "mask_px": 146,
+        "n_points": 146,
+        "centroid_err": 0.0186,
+        "extent": [
+          0.034,
+          0.048,
+          0.033
+        ],
+        "depth_range": [
+          0.466,
+          1.818
+        ],
+        "used": false
+      },
+      "robot0_agentview_right": {
+        "mask_px": 149,
+        "n_points": 149,
+        "centroid_err": 0.0179,
+        "extent": [
+          0.036,
+          0.049,
+          0.031
+        ],
+        "depth_range": [
+          0.466,
+          1.818
+        ],
+        "used": false
+      },
+      "robot0_agentview_center": {
+        "mask_px": 0,
+        "used": false
+      }
+    },
+    "cross_camera_max": null,
+    "best_px": 149,
+    "used_cameras": [],
+    "pass": false,
+    "failures": [
+      "A: no camera has a usable view (best 149 px)"
+    ]
+  }
+]
