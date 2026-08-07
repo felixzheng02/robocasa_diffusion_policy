@@ -74,14 +74,18 @@ def plan_grasp(sim, args):
     gids = GP.object_geom_ids(sim)
     _, dm, seg = GP.capture(sim, cam)
     mask = GP.object_mask(seg, gids)
-    _, obj_world = GP.unproject(sim.sim, cam, dm, mask, GP.CAPTURE_W, GP.CAPTURE_H)
+    obj_cam, obj_world = GP.unproject(sim.sim, cam, dm, mask,
+                                      GP.CAPTURE_W, GP.CAPTURE_H)
     if len(obj_world) == 0:
         return None, diag
 
-    # The detector sees the whole scene, not a floating object: without the supporting
-    # surface it proposes physically silly grasps. Targeting happens afterwards, in
-    # select_grasp, by keeping only grasps that land on the object's own points.
-    cloud_cam = GP.scene_cloud(sim.sim, cam, dm, GP.CAPTURE_W, GP.CAPTURE_H)
+    # Send the object *and its immediate support*, cropped to a box around the object. Some
+    # context is needed -- a floating object with no support surface yields physically silly
+    # grasps -- but the whole kitchen starves the detector: uncropped, the 25th percentile of
+    # its 64 grasps sat 0.388 m away and nothing survived targeting. Targeting itself happens
+    # afterwards in select_grasp, by keeping only grasps on the object's own points.
+    cloud_cam = GP.scene_cloud(sim.sim, cam, dm, GP.CAPTURE_W, GP.CAPTURE_H,
+                               centre_cam=obj_cam.mean(axis=0))
     diag["n_points"] = int(len(cloud_cam))
 
     t0 = time.time()

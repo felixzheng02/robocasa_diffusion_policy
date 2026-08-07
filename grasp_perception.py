@@ -53,7 +53,14 @@ GRASP_TO_EEF = np.array([[0.0, 0.0, 1.0],
                          [1.0, 0.0, 0.0],
                          [0.0, 1.0, 0.0]])
 
-MAX_GRIPPER_WIDTH = 0.075          # Panda opens to 0.08; GraspNet is not clamped to it
+# Panda's jaws open to 0.08. GraspNet's reported width is NOT a measurement: pred_decode
+# multiplies it by 1.2 and clamps to GRASP_MAX_WIDTH = 0.1, so it is an inflated upper
+# estimate. Measured across 64 grasps on one scene the widths ran 0.056 / 0.094 / 0.100
+# (min/median/max) -- filtering at 0.075 rejected the majority including every grasp that
+# was actually on the object. Filter at the true jaw limit and check the *cloud* instead:
+# the object's own extent along the closing axis is ground truth, the prediction is not.
+MAX_GRIPPER_WIDTH = 0.080
+MAX_TRUE_WIDTH = 0.070             # measured object extent between the jaws, with margin
 MAX_OBJ_DIST = 0.04                # a grasp further than this from the object is not on it
 
 
@@ -102,11 +109,23 @@ def unproject(sim, camera, dm, mask, width, height, depth_tol=0.10):
     return pc_cam, pc_world
 
 
-def scene_cloud(sim, camera, dm, width, height, stride=2, max_range=2.5):
-    """The whole visible scene as a camera-frame cloud, subsampled.
+WORKSPACE_R = 0.25   # m, half-size of the crop box around the target object
 
-    The detector needs context around the object: fed a floating object with no support
-    surface it proposes physically silly grasps.
+
+def scene_cloud(sim, camera, dm, width, height, stride=2, max_range=2.5,
+                centre_cam=None, radius=WORKSPACE_R):
+    """
+    The visible scene as a camera-frame cloud, cropped to a workspace box.
+
+    The detector needs *some* context -- fed a floating object with no support surface it
+    proposes physically silly grasps -- but it must not be fed the whole kitchen. Measured
+    without the crop: of 64 returned grasps, the 25th percentile sat 0.388 m from the target
+    object, i.e. the detector spent almost all its capacity on counters, walls and the oven,
+    and after filtering to grasps actually on the object **zero** survived.
+
+    Cropping to +-0.25 m around the object concentrates the 20k sampled points the network
+    sees onto the object and its immediate support. This is the same idea as graspnet's own
+    demo workspace mask and AnyGrasp's `lims` argument, so it transfers to that backend.
     """
     ys, xs = np.mgrid[0:height:stride, 0:width:stride]
     ys, xs = ys.ravel(), xs.ravel()
@@ -114,8 +133,13 @@ def scene_cloud(sim, camera, dm, width, height, stride=2, max_range=2.5):
     keep = (z > 0.05) & (z < max_range)
     ys, xs, z = ys[keep], xs[keep], z[keep]
     K = CU.get_camera_intrinsic_matrix(sim, camera, height, width)
-    return np.stack([(xs - K[0, 2]) * z / K[0, 0],
-                     (ys - K[1, 2]) * z / K[1, 1], z], axis=1)
+    pts = np.stack([(xs - K[0, 2]) * z / K[0, 0],
+                    (ys - K[1, 2]) * z / K[1, 1], z], axis=1)
+    if centre_cam is not None:
+        m = np.all(np.abs(pts - np.asarray(centre_cam)) <= radius, axis=1)
+        if m.sum() >= 512:            # keep the full cloud if the crop starves the network
+            pts = pts[m]
+    return pts
 
 
 def choose_camera(env, cameras=None, width=CAPTURE_W, height=CAPTURE_H, obj_name="obj"):
@@ -189,6 +213,19 @@ def select_grasp(grasps, E, obj_points_world, env, max_width=MAX_GRIPPER_WIDTH,
         d_obj = float(np.min(np.linalg.norm(obj_points_world - pos, axis=1)))
         if d_obj > max_obj_dist:
             continue                      # a grasp on the counter, a distractor, a wall
+
+        # What the jaws would actually enclose, measured from the object's own points
+        # rather than trusted from the detector's inflated width prediction. Doubles as a
+        # convention check: a flipped axis or a bad frame composition empties this set for
+        # essentially every grasp, so the failure surfaces as `no_grasp_proposed` in the
+        # JSON rather than as a mysteriously low score.
+        local = (obj_points_world - pos) @ R_eef      # columns of R_eef are the eef axes
+        near = local[(np.abs(local[:, 2]) < 0.02) & (np.abs(local[:, 0]) < 0.05)]
+        if len(near) < 3:
+            continue
+        true_w = float(np.ptp(near[:, 0]))            # extent along the closing axis (+-x)
+        if true_w > MAX_TRUE_WIDTH:
+            continue
         R_eef = pick_symmetric(R_eef, R_cur)
         out.append({
             "index": i,
@@ -199,6 +236,7 @@ def select_grasp(grasps, E, obj_points_world, env, max_width=MAX_GRIPPER_WIDTH,
             "mat": R_eef,
             "approach": approach,
             "obj_dist": d_obj,
+            "true_width": true_w,
             "reorient": rotation_geodesic(R_cur, R_eef),
             # a mild prior for reaching down rather than sideways: top-down grasps are both
             # more often reachable with a fixed base and less likely to sweep the object
