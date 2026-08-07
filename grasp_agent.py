@@ -28,9 +28,16 @@ def probe():
         return None
 
 
-def detect(points, colors=None, top_k=64, collision_thresh=0.01):
+def detect(points, colors=None, top_k=64, collision_thresh=0.0):
     """
     Grasps for a camera-frame cloud, as an (M,17) graspnetAPI array. None on any failure.
+
+    `collision_thresh` defaults to 0 -- server-side collision filtering is OFF on purpose.
+    It is redundant and strictly worse-informed than what the client already does: the
+    server can only reason about the scene cloud heuristically, while `select_grasp` checks
+    what the jaws would enclose against the *target object's* points. Measured, the server
+    filter was gutting the pool on sparse clouds (64 candidates down to 1-3 on several
+    scenes), which showed up as `no_grasp_proposed` rather than as anything diagnosable.
 
     The response's `convention` block is asserted rather than assumed: a backend that means
     something different by R has to say so, and this fires instead of the arm silently

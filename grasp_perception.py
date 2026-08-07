@@ -109,7 +109,13 @@ def unproject(sim, camera, dm, mask, width, height, depth_tol=0.10):
     return pc_cam, pc_world
 
 
-WORKSPACE_R = 0.25   # m, half-size of the crop box around the target object
+# Half-size of the crop box around the target object. 0.25 was still far too generous:
+# measured over 64 grasps on two scenes, the *median* grasp landed 0.15-0.20 m from the
+# object and only 3-6 fell within 4 cm of it, because a +-0.25 m box around a croissant is
+# mostly counter and the detector proposes over the whole cloud. Tighter concentrates the
+# 20k sampled points on the object while still keeping enough support surface that grasps
+# stay physically sensible.
+WORKSPACE_R = 0.15
 
 
 def scene_cloud(sim, camera, dm, width, height, stride=2, max_range=2.5,
@@ -181,9 +187,15 @@ def grasp_to_world(grasp, E):
     t_world = E[:3, :3] @ t_cam + E[:3, 3]
     approach = R_world[:, 0] / np.linalg.norm(R_world[:, 0])
 
+    # `pos` is where grip_site should end up; `t_world` is the seed point the grasp was
+    # predicted at. They are returned separately because they answer different questions:
+    # pred_decode sets grasp_center = fp2_xyz, i.e. a point *sampled from the input cloud*,
+    # so `t_world` is the right thing to test "is this grasp on the target object" against
+    # (measured: it coincides with object cloud points to 0.0000 m), while `pos` is the
+    # right thing to servo to. Conflating them pushed targeting up to 4 cm off the surface.
     pos = t_world + depth * approach
     R_eef = R_world @ GRASP_TO_EEF
-    return pos, R_eef, approach
+    return pos, R_eef, approach, t_world
 
 
 def select_grasp(grasps, E, obj_points_world, env, max_width=MAX_GRIPPER_WIDTH,
@@ -209,8 +221,9 @@ def select_grasp(grasps, E, obj_points_world, env, max_width=MAX_GRIPPER_WIDTH,
         width = float(g[W.WIDTH])
         if width > max_width:
             continue                      # will not close on this object
-        pos, R_eef, approach = grasp_to_world(g, E)
-        d_obj = float(np.min(np.linalg.norm(obj_points_world - pos, axis=1)))
+        pos, R_eef, approach, seed = grasp_to_world(g, E)
+        # Target on the seed point, not the offset grasp point -- see grasp_to_world.
+        d_obj = float(np.min(np.linalg.norm(obj_points_world - seed, axis=1)))
         if d_obj > max_obj_dist:
             continue                      # a grasp on the counter, a distractor, a wall
 
@@ -220,8 +233,8 @@ def select_grasp(grasps, E, obj_points_world, env, max_width=MAX_GRIPPER_WIDTH,
         # essentially every grasp, so the failure surfaces as `no_grasp_proposed` in the
         # JSON rather than as a mysteriously low score.
         local = (obj_points_world - pos) @ R_eef      # columns of R_eef are the eef axes
-        near = local[(np.abs(local[:, 2]) < 0.02) & (np.abs(local[:, 0]) < 0.05)]
-        if len(near) < 3:
+        near = local[(np.abs(local[:, 2]) < 0.04) & (np.abs(local[:, 0]) < 0.05)]
+        if len(near) < 1:
             continue
         true_w = float(np.ptp(near[:, 0]))            # extent along the closing axis (+-x)
         if true_w > MAX_TRUE_WIDTH:
@@ -243,5 +256,16 @@ def select_grasp(grasps, E, obj_points_world, env, max_width=MAX_GRIPPER_WIDTH,
             "downward": float(np.dot(approach, np.array([0.0, 0.0, -1.0]))),
         })
 
-    out.sort(key=lambda d: (-d["score"], d["reorient"]))
+    # Rank by reachability first, not raw score. Measured over 12 rollouts, `unreachable`
+    # was 4/12 and every one of them had a grasp genuinely *on* the object (obj_dist
+    # 0.007-0.030) that the arm simply could not get the wrist to. With the base fixed, a
+    # downward approach is far more often reachable than a sideways or upward one, and a
+    # small wrist reorientation is more often reachable than a large one -- so a slightly
+    # lower-scoring grasp that can actually be executed beats a better one that cannot.
+    #
+    # `downward` is dot(approach, -z): +1 straight down, 0 horizontal, -1 straight up.
+    def rank(d):
+        return -(d["score"] + 0.6 * d["downward"] - 0.25 * d["reorient"])
+
+    out.sort(key=rank)
     return out
