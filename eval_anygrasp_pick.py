@@ -84,8 +84,10 @@ def plan_grasp(sim, args):
     # grasps -- but the whole kitchen starves the detector: uncropped, the 25th percentile of
     # its 64 grasps sat 0.388 m away and nothing survived targeting. Targeting itself happens
     # afterwards in select_grasp, by keeping only grasps on the object's own points.
+    radius = GP.crop_radius(obj_cam)
     cloud_cam = GP.scene_cloud(sim.sim, cam, dm, GP.CAPTURE_W, GP.CAPTURE_H,
-                               centre_cam=obj_cam.mean(axis=0))
+                               centre_cam=obj_cam.mean(axis=0), radius=radius)
+    diag["crop_r"] = round(radius, 3)
     diag["n_points"] = int(len(cloud_cam))
 
     t0 = time.time()

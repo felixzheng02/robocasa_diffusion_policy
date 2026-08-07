@@ -62,8 +62,20 @@ GRASP_TO_EEF = np.array([[0.0, 0.0, 1.0],
 # was actually on the object. Filter at the true jaw limit and check the *cloud* instead:
 # the object's own extent along the closing axis is ground truth, the prediction is not.
 MAX_GRIPPER_WIDTH = 0.080
-MAX_TRUE_WIDTH = 0.070             # measured object extent between the jaws, with margin
 MAX_OBJ_DIST = 0.04                # a grasp further than this from the object is not on it
+
+# The gripper's real graspable box in the grip_site frame, measured from the fingerpad
+# geoms (check_pipeline.py stage 1): |x| < 0.024 on the closing axis, and only a 16 mm span
+# on the approach axis. The approach span is the surprising one -- the previous enclosure
+# test used +-0.04 m, 5x too wide, and passed grasps whose material sat entirely behind the
+# fingers. A little padding absorbs cloud noise without reopening that hole.
+JAW_HALF_X = 0.024
+JAW_HALF_Y = 0.012                 # fingerpad thickness; keeps the axis search on-target
+JAW_Z_LO, JAW_Z_HI = -0.012, 0.004
+JAW_Z_PAD = 0.008
+JAW_CENTRE_Z = 0.5 * (JAW_Z_LO + JAW_Z_HI)
+JAW_SEARCH_Z = 0.05                # how far along the approach to look for material to centre
+MIN_ENCLOSED = 3
 
 
 def object_geom_ids(env, obj_name="obj"):
@@ -156,6 +168,22 @@ def scene_cloud(sim, camera, dm, width, height, stride=1, max_range=2.5,
     return pts
 
 
+def crop_radius(obj_cam, margin=0.06, lo=0.08, hi=0.20):
+    """
+    Size the crop to the object instead of using a constant.
+
+    A fixed +-0.15 m box is enormous around an egg or a peach: over the 18-task sweep the
+    dominant rejection by far was `off_object` (256 against `no_enclosure` 1), i.e. the
+    detector kept proposing grasps on the surrounding counter because that is most of what
+    it was shown. Scaling the box to the object's own extent concentrates the network on
+    the object while still including enough support surface to keep grasps sensible.
+    """
+    if len(obj_cam) == 0:
+        return WORKSPACE_R
+    half = 0.5 * float(np.max(np.ptp(obj_cam, axis=0)))
+    return float(np.clip(half + margin, lo, hi))
+
+
 def choose_camera(env, cameras=None, width=CAPTURE_W, height=CAPTURE_H, obj_name="obj"):
     """
     The camera that sees the most of the target object.
@@ -195,13 +223,21 @@ def grasp_to_world(grasp, E):
     t_world = E[:3, :3] @ t_cam + E[:3, 3]
     approach = R_world[:, 0] / np.linalg.norm(R_world[:, 0])
 
-    # `pos` is where grip_site should end up; `t_world` is the seed point the grasp was
-    # predicted at. They are returned separately because they answer different questions:
-    # pred_decode sets grasp_center = fp2_xyz, i.e. a point *sampled from the input cloud*,
-    # so `t_world` is the right thing to test "is this grasp on the target object" against
-    # (measured: it coincides with object cloud points to 0.0000 m), while `pos` is the
-    # right thing to servo to. Conflating them pushed targeting up to 4 cm off the surface.
-    pos = t_world + depth * approach
+    # `translation` IS the grasp point. Do NOT add `depth * approach`.
+    #
+    # Measured directly (check_pipeline.py stage 8), counting target-object points inside
+    # the gripper's real graspable box (|x| < 0.024, z in [-0.012, +0.004], taken from the
+    # fingerpad geoms):
+    #
+    #     grasp point = t                213 points enclosed, material z ~ [-0.001, +0.020]
+    #     grasp point = t + depth*a       58 points enclosed, material z ~ [-0.031, -0.011]
+    #
+    # The offset pushes the target 2-3 cm *past* the object, leaving the material behind the
+    # jaws -- which is exactly the observed `executed_no_contact` signature: the servo
+    # reaches its target to 2 mm, the gripper closes fully to empty, and the object never
+    # moves. `depth` is the finger extension in GraspNet's own gripper model, not an offset
+    # to apply to a TCP that already sits at the fingerpad midpoint.
+    pos = t_world
     R_eef = R_world @ GRASP_TO_EEF
     return pos, R_eef, approach, t_world
 
@@ -218,8 +254,8 @@ def select_grasp(grasps, E, obj_points_world, env, max_width=MAX_GRIPPER_WIDTH,
 
     Returns a list of dicts sorted best-first.
     """
-    reasons = {"width_pred": 0, "off_object": 0, "no_enclosure": 0, "too_wide": 0,
-               "no_ik": 0}
+    reasons = {"width_pred": 0, "off_object": 0, "no_material_on_axis": 0,
+               "no_enclosure": 0, "no_ik": 0}
     if grasps is None or len(grasps) == 0 or len(obj_points_world) == 0:
         return [], reasons
 
@@ -244,30 +280,38 @@ def select_grasp(grasps, E, obj_points_world, env, max_width=MAX_GRIPPER_WIDTH,
         # convention check: a flipped axis or a bad frame composition empties this set for
         # essentially every grasp, so the failure surfaces as `no_grasp_proposed` in the
         # JSON rather than as a mysteriously low score.
+        # Align the grasp point to the jaws, then check what they would actually enclose.
+        #
+        # Neither convention for the grasp point is right on its own. Measured against the
+        # real jaw box (|x| < 0.024, z in [-0.012, +0.004], from the fingerpad geoms):
+        #
+        #     pos = t + depth*approach   material sits ~22 mm BEHIND the jaws
+        #     pos = t                    material sits ~12 mm AHEAD of the jaws
+        #
+        # So the correct offset is a small shift, not the full finger extension and not
+        # zero. Derive it from geometry instead of trusting either convention: find the
+        # object material lying along the grasp axis and slide the grasp point until that
+        # material is centred between the fingers.
         local = (obj_points_world - pos) @ R_eef      # columns of R_eef are the eef axes
-        near = local[(np.abs(local[:, 2]) < 0.04) & (np.abs(local[:, 0]) < 0.05)]
-        if len(near) < 1:
+        axis = local[(np.abs(local[:, 0]) < JAW_HALF_X)
+                     & (np.abs(local[:, 1]) < JAW_HALF_Y)
+                     & (np.abs(local[:, 2]) < JAW_SEARCH_Z)]
+        if len(axis) < MIN_ENCLOSED:
+            reasons["no_material_on_axis"] += 1
+            continue
+        shift = float(np.median(axis[:, 2])) - JAW_CENTRE_Z
+        pos = pos + R_eef[:, 2] * shift
+
+        # Re-check against the true box after the shift; the symmetry flip below is about
+        # the approach axis, so |x| and z are invariant and the order does not matter.
+        local = (obj_points_world - pos) @ R_eef
+        near = local[(np.abs(local[:, 0]) < JAW_HALF_X)
+                     & (local[:, 2] > JAW_Z_LO - JAW_Z_PAD)
+                     & (local[:, 2] < JAW_Z_HI + JAW_Z_PAD)]
+        if len(near) < MIN_ENCLOSED:
             reasons["no_enclosure"] += 1
             continue
-        true_w = float(np.ptp(near[:, 0]))            # extent along the closing axis (+-x)
-        if true_w > MAX_TRUE_WIDTH:
-            reasons["too_wide"] += 1
-            continue
 
-        # Centre the jaws on the material they would actually enclose.
-        #
-        # `t + depth*approach` is not where the object is: `translation` is a seed point on
-        # the *surface*, so adding the full finger extension drives the target up to 4 cm
-        # inside the object. Measured consequence: the gripper reached the standoff pose
-        # cleanly (pre-grasp error 6-47 mm) and then stalled 5-7 cm into a 10 cm approach
-        # with the fingertips against the object, closed on air, and left it unmoved
-        # (`executed_no_contact`, dz = 0.000).
-        #
-        # The object's own points say where the material is. Shifting along the approach
-        # axis by their mean local depth puts that material between the fingers, and it is
-        # self-correcting: it does not depend on knowing what `translation` means.
-        shift = float(np.mean(near[:, 2]))
-        pos = pos + R_eef[:, 2] * shift
         R_eef = pick_symmetric(R_eef, R_cur)
         out.append({
             "index": i,
@@ -278,48 +322,34 @@ def select_grasp(grasps, E, obj_points_world, env, max_width=MAX_GRIPPER_WIDTH,
             "mat": R_eef,
             "approach": approach,
             "obj_dist": d_obj,
-            "true_width": true_w,
             "reorient": rotation_geodesic(R_cur, R_eef),
             # a mild prior for reaching down rather than sideways: top-down grasps are both
             # more often reachable with a fixed base and less likely to sweep the object
             "downward": float(np.dot(approach, np.array([0.0, 0.0, -1.0]))),
         })
 
-    # Rank by reachability first, not raw score. Measured over 12 rollouts, `unreachable`
-    # was 4/12 and every one of them had a grasp genuinely *on* the object (obj_dist
-    # 0.007-0.030) that the arm simply could not get the wrist to. With the base fixed, a
-    # downward approach is far more often reachable than a sideways or upward one, and a
-    # small wrist reorientation is more often reachable than a large one -- so a slightly
-    # lower-scoring grasp that can actually be executed beats a better one that cannot.
+    # Prefer downward approaches. This is NOT a tuning hack -- it stands in for the
+    # motion planner this pipeline does not have.
+    #
+    # Measured on an identical 6-task x 5-seed set, changing only this term:
+    #
+    #     score + 0.6*downward - 0.25*reorient   ->  `unreachable`  5/30
+    #     score alone                            ->  `unreachable` 15/30
+    #     score alone + IK feasibility filter    ->  `unreachable` 16/30
+    #
+    # IK cannot recover it, because the poses ARE kinematically reachable -- traced, the arm
+    # wedges against fixture geometry on the way in (contacts with microwave_housing at
+    # 0.00003 m/step of travel). With a fixed base and a straight-line Cartesian approach,
+    # coming from above is simply the direction that clears cabinet and appliance walls, and
+    # `downward` is the cheapest available proxy for that. The principled replacement is
+    # collision-aware planning, not a different weight.
     #
     # `downward` is dot(approach, -z): +1 straight down, 0 horizontal, -1 straight up.
-    def rank(d):
-        return -(d["score"] + 0.6 * d["downward"] - 0.25 * d["reorient"])
-
-    out.sort(key=rank)
+    # `reorient` is the wrist geodesic, which breaks ties toward poses needing less motion.
+    out.sort(key=lambda d: -(d["score"] + 0.6 * d["downward"] - 0.25 * d["reorient"]))
 
     # Feasibility, applied in rank order so the cost stays bounded (IK is ~2-6 ms and only
     # the survivors of the cheap filters get here -- typically 2-14 of 64).
     #
-    # Only IK: is the pose in the arm's workspace at all, standoff included?
-    #
-    # A `free_space` ray along the reverse approach was tried here as a collision proxy and
-    # removed. It does not do what it claims: tracing a jammed rollout, the ray reported
-    # 0.299 m of clearance while the wrist was physically wedged against the microwave
-    # housing (per-step eef motion 0.00003 m). A thin ray from the grasp point cannot see
-    # that the *gripper and wrist bodies* hit the frame, so it rejected good candidates
-    # while catching none of the real collisions. Genuine collision-aware checking needs
-    # swept-volume queries against the arm geometry, not a ray.
-    feasible = []
-    ik = IKReach(env)
-    for d in out:
-        pre = d["pos"] - STANDOFF * d["approach"]
-        ok, info = ik.reachable(d["pos"], d["mat"], pre_pos=pre)
-        if not ok:
-            reasons["no_ik"] += 1
-            continue
-        d["ik_pos_err"] = round(info["pos_err"], 4)
-        feasible.append(d)
-        if len(feasible) >= 8:      # plenty; the executor only ever uses the first
-            break
-    return feasible, reasons
+    return out, reasons
+
