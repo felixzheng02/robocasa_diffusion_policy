@@ -67,7 +67,20 @@ CLOSE_STEPS = 15       # 0.75 s at 20 Hz; Panda finger travel is 0.04 m
 STALL_WINDOW = 5       # steps over which to measure a stall
 STALL_EPS = 0.001      # m; less movement than this over the window counts as blocked
 
-STAGE_CAPS = {"pre_grasp": 120, "approach": 60, "close": CLOSE_STEPS, "lift": 60, "hold": 20}
+# Stage budgets. Traced against a real rollout: with NO contacts the eef moves only
+# ~0.0093 m per env step, not the 0.05 m the action nominally commands -- OSC impedance
+# dynamics set the pace, not the command. A 0.3-0.4 m reach to the standoff pose therefore
+# needs 35-50 steps of pure travel before any settling, so the original 120 was far tighter
+# than it looked. Raised, with `lift`/`hold` trimmed to compensate: the total must stay under
+# the smallest rollout budget in the suite (0.5 * horizon = 225 for the 450-horizon tasks).
+STAGE_CAPS = {"pre_grasp": 170, "approach": 60, "close": CLOSE_STEPS, "lift": 40, "hold": 10}
+
+# A jammed arm is not a slow arm. Traced on PickPlaceMicrowaveToCounter, the wrist wedges
+# against the microwave housing and per-step motion collapses to 0.00003 m while the
+# position error sits at 0.085 -- burning the whole stage budget on a pose it will never
+# reach. Detecting that and giving up early is what makes the raised cap affordable.
+JAM_WINDOW = 25
+JAM_EPS = 0.004        # m of eef travel over the window; below this it is wedged, not slow
 
 
 def eef_pose(env):
@@ -140,8 +153,10 @@ class GraspExecutor:
         self.stage_steps = {}
         self.stage_err = {}
         self.failure = None
+        self.jammed = False
         self._ok_run = 0
         self._recent = []
+        self._jam = []
 
     # -- helpers -------------------------------------------------------------------
     def _advance(self, env, pos_err, rot_err):
@@ -151,6 +166,7 @@ class GraspExecutor:
         self.stage_step = 0
         self._ok_run = 0
         self._recent = []
+        self._jam = []
 
     def _stalled(self, p_eef):
         """True when the eef has stopped moving -- i.e. something is physically blocking it.
@@ -194,6 +210,21 @@ class GraspExecutor:
                     self._advance(env, pos_err, rot_err)
             else:
                 self._ok_run = 0
+            # Wedged against something: stop early rather than spend the whole cap. Only
+            # once past the initial acceleration, so a standing start is not read as a jam.
+            self._jam.append(np.asarray(p_eef, dtype=np.float64))
+            if len(self._jam) > JAM_WINDOW:
+                self._jam.pop(0)
+                if (self.stage == "pre_grasp" and self.stage_step > JAM_WINDOW
+                        and float(np.linalg.norm(self._jam[-1] - self._jam[0])) < JAM_EPS
+                        and pos_err > 0.05):
+                    self.failure = "unreachable"
+                    self.jammed = True
+                    self.stage_steps[self.stage] = self.stage_step
+                    self.stage_err[self.stage] = {"pos": round(pos_err, 4),
+                                                  "rot": round(rot_err, 4)}
+                    self.stage = "done"
+                    return a
             if self.stage == "pre_grasp" and self.stage_step >= cap:
                 # Far away and out of time means the pose was never reachable; close but
                 # out of time is just slow, so fall through and try the grasp anyway.

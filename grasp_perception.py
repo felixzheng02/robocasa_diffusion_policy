@@ -41,6 +41,8 @@ from scipy import ndimage
 import robosuite.utils.camera_utils as CU
 
 from grasp_geometry import pick_symmetric, rotation_geodesic
+from grasp_executor import STANDOFF
+from grasp_ik import IKReach
 import grasp_wire as W
 
 AGENTVIEWS = ["robot0_agentview_left", "robot0_agentview_right", "robot0_agentview_center"]
@@ -216,7 +218,8 @@ def select_grasp(grasps, E, obj_points_world, env, max_width=MAX_GRIPPER_WIDTH,
 
     Returns a list of dicts sorted best-first.
     """
-    reasons = {"width_pred": 0, "off_object": 0, "no_enclosure": 0, "too_wide": 0}
+    reasons = {"width_pred": 0, "off_object": 0, "no_enclosure": 0, "too_wide": 0,
+               "no_ik": 0}
     if grasps is None or len(grasps) == 0 or len(obj_points_world) == 0:
         return [], reasons
 
@@ -250,6 +253,21 @@ def select_grasp(grasps, E, obj_points_world, env, max_width=MAX_GRIPPER_WIDTH,
         if true_w > MAX_TRUE_WIDTH:
             reasons["too_wide"] += 1
             continue
+
+        # Centre the jaws on the material they would actually enclose.
+        #
+        # `t + depth*approach` is not where the object is: `translation` is a seed point on
+        # the *surface*, so adding the full finger extension drives the target up to 4 cm
+        # inside the object. Measured consequence: the gripper reached the standoff pose
+        # cleanly (pre-grasp error 6-47 mm) and then stalled 5-7 cm into a 10 cm approach
+        # with the fingertips against the object, closed on air, and left it unmoved
+        # (`executed_no_contact`, dz = 0.000).
+        #
+        # The object's own points say where the material is. Shifting along the approach
+        # axis by their mean local depth puts that material between the fingers, and it is
+        # self-correcting: it does not depend on knowing what `translation` means.
+        shift = float(np.mean(near[:, 2]))
+        pos = pos + R_eef[:, 2] * shift
         R_eef = pick_symmetric(R_eef, R_cur)
         out.append({
             "index": i,
@@ -279,4 +297,29 @@ def select_grasp(grasps, E, obj_points_world, env, max_width=MAX_GRIPPER_WIDTH,
         return -(d["score"] + 0.6 * d["downward"] - 0.25 * d["reorient"])
 
     out.sort(key=rank)
-    return out, reasons
+
+    # Feasibility, applied in rank order so the cost stays bounded (IK is ~2-6 ms and only
+    # the survivors of the cheap filters get here -- typically 2-14 of 64).
+    #
+    # Only IK: is the pose in the arm's workspace at all, standoff included?
+    #
+    # A `free_space` ray along the reverse approach was tried here as a collision proxy and
+    # removed. It does not do what it claims: tracing a jammed rollout, the ray reported
+    # 0.299 m of clearance while the wrist was physically wedged against the microwave
+    # housing (per-step eef motion 0.00003 m). A thin ray from the grasp point cannot see
+    # that the *gripper and wrist bodies* hit the frame, so it rejected good candidates
+    # while catching none of the real collisions. Genuine collision-aware checking needs
+    # swept-volume queries against the arm geometry, not a ray.
+    feasible = []
+    ik = IKReach(env)
+    for d in out:
+        pre = d["pos"] - STANDOFF * d["approach"]
+        ok, info = ik.reachable(d["pos"], d["mat"], pre_pos=pre)
+        if not ok:
+            reasons["no_ik"] += 1
+            continue
+        d["ik_pos_err"] = round(info["pos_err"], 4)
+        feasible.append(d)
+        if len(feasible) >= 8:      # plenty; the executor only ever uses the first
+            break
+    return feasible, reasons
