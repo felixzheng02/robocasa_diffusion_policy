@@ -22,6 +22,7 @@ Example:
 
 import argparse
 import json
+import pathlib
 from pathlib import Path
 
 import numpy as np
@@ -41,8 +42,12 @@ from robocasa.utils.env_helpers import base_env
 def load_shape_meta(skill="pick"):
     from omegaconf import OmegaConf
 
+    # __file__-anchored, not cwd-relative: this script is run from several directories
+    # and, after the workspace split, no longer necessarily from the repo root.
     cfg = OmegaConf.load(
-        f"diffusion_policy/config/task/robocasa/pretrain_{skill}_skill.yaml"
+        pathlib.Path(__file__).parent
+        / "diffusion_policy/config/task/robocasa"
+        / f"pretrain_{skill}_skill.yaml"
     )
     return OmegaConf.to_container(cfg.shape_meta, resolve=False)
 
@@ -111,6 +116,12 @@ def main():
         action="store_true",
         help="restore each demo's initial sim state before replaying (recommended)",
     )
+    p.add_argument(
+        "--output",
+        default=None,
+        help="where to write the result JSON; defaults beside this script so a run from "
+             "another directory does not scatter results",
+    )
     args = p.parse_args()
 
     # the *pick* skill dataset holds the trimmed segments and their recorded actions
@@ -152,7 +163,9 @@ def main():
     else:
         print("PARTIAL - plumbing works; misses are likely open-loop drift, not a bug")
 
-    Path("harness_check.json").write_text(json.dumps(results, indent=2))
+    out = pathlib.Path(args.output) if args.output else (
+        pathlib.Path(__file__).parent / "harness_check.json")
+    out.write_text(json.dumps(results, indent=2))
 
 
 if __name__ == "__main__":
