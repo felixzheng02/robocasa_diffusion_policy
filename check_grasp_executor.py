@@ -25,8 +25,7 @@ import robocasa.utils.skill_utils as SU
 from robocasa.utils.dataset_registry_utils import get_task_horizon
 from robocasa.utils.env_utils import convert_action
 
-from diffusion_policy.env_runner.robomimic_image_runner import create_env
-from eval_chained_pick_place import base_env
+from robocasa.utils.env_helpers import base_env, create_env
 from grasp_executor import GraspExecutor
 from grasp_geometry import oracle_grasp as _oracle_grasp
 

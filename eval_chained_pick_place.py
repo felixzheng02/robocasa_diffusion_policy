@@ -25,11 +25,9 @@ import json
 import os
 import pathlib
 
-import dill
 import imageio
 import numpy as np
 import torch
-from omegaconf import OmegaConf
 from termcolor import colored
 
 import robocasa  # noqa: F401  (registers the gym envs)
@@ -39,71 +37,10 @@ from robomimic.utils.lang_utils import LangEncoder
 from diffusion_policy.common.pytorch_util import dict_apply
 from diffusion_policy.dataset.lerobot_dataset import SLOT_KEYS
 from diffusion_policy.env.robomimic.robomimic_image_wrapper import RobomimicImageWrapper
-from diffusion_policy.env_runner.robomimic_image_runner import create_env
-from diffusion_policy.workspace.base_workspace import BaseWorkspace
+from robocasa.utils.env_helpers import base_env, create_env
+from diffusion_policy.skills.eval_helpers import (
+    load_policy, obs_to_frame, stack_obs)
 from robocasa.utils.dataset_registry_utils import get_task_horizon
-import hydra
-
-
-def load_policy(checkpoint, device):
-    """Load a trained policy and the shape_meta it was trained with."""
-    payload = torch.load(open(checkpoint, "rb"), pickle_module=dill)
-    cfg = payload["cfg"]
-    workspace = hydra.utils.get_class(cfg._target_)(cfg, output_dir=None)
-    workspace: BaseWorkspace
-    workspace.load_payload(payload, exclude_keys=None, include_keys=None)
-
-    policy = workspace.model
-    if cfg.training.use_ema:
-        policy = workspace.ema_model
-    policy.to(torch.device(device))
-    policy.eval()
-
-    return policy, OmegaConf.to_container(cfg.task.shape_meta, resolve=False)
-
-
-def base_env(wrapper):
-    """Dig out the underlying robosuite Kitchen env, which owns the predicates."""
-    env = wrapper.env
-    while not hasattr(env, "_check_success"):
-        if hasattr(env, "env"):
-            env = env.env
-        elif hasattr(env, "unwrapped") and env.unwrapped is not env:
-            env = env.unwrapped
-        else:
-            raise RuntimeError("could not find the robosuite env under the wrapper")
-    return env
-
-
-def obs_to_frame(obs):
-    """
-    One diagnostic frame: third-person view beside the wrist view.
-
-    Both are needed to tell the failure modes apart — agentview shows whether the arm went
-    to the right place at all, eye-in-hand shows whether it was aligned on the object and
-    simply mistimed the gripper.
-    """
-    panels = []
-    for key in ("robot0_agentview_right_image", "robot0_eye_in_hand_image"):
-        if key not in obs:
-            continue
-        img = obs[key]
-        if img.ndim == 4:  # (T, C, H, W) -> last step
-            img = img[-1]
-        img = np.moveaxis(img, 0, -1)  # CHW -> HWC
-        panels.append((img * 255).clip(0, 255).astype(np.uint8))
-    return np.concatenate(panels, axis=1) if panels else None
-
-
-def stack_obs(history, n_obs_steps):
-    """deque of per-step obs dicts -> {key: (1, n_obs_steps, ...)}."""
-    while len(history) < n_obs_steps:
-        history.appendleft(history[0])
-    window = list(history)[-n_obs_steps:]
-    return {
-        key: np.stack([step[key] for step in window])[None]
-        for key in window[0]
-    }
 
 
 def run_episode(env_name, split, seed, shape_meta, policies, encoder,
