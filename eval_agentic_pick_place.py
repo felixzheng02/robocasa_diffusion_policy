@@ -52,12 +52,12 @@ from robomimic.utils.lang_utils import LangEncoder
 from diffusion_policy.common.pytorch_util import dict_apply
 from diffusion_policy.dataset.lerobot_dataset import SLOT_KEYS
 from diffusion_policy.env.robomimic.robomimic_image_wrapper import RobomimicImageWrapper
-from diffusion_policy.env_runner.robomimic_image_runner import create_env
+from robocasa.utils.env_helpers import base_env, create_env
 from robocasa.utils.dataset_registry_utils import get_task_horizon
 
 # The obs pipeline is imported, not forked, so it is literally identical across the arms
 # being compared.
-from eval_chained_pick_place import base_env, load_policy, obs_to_frame, stack_obs
+from diffusion_policy.skills.eval_helpers import load_policy, obs_to_frame, stack_obs
 
 # Chunks between monitor calls. One chunk is 8 env steps (~1.3 s wall clock), so 2 puts a
 # decision request in flight roughly every 2.6 s against a ~2 s round trip.

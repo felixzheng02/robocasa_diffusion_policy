@@ -29,8 +29,7 @@ from termcolor import colored
 import robocasa  # noqa: F401
 import robocasa.utils.skill_utils as SU
 from robocasa.utils.env_utils import convert_action
-from diffusion_policy.env_runner.robomimic_image_runner import create_env
-from eval_chained_pick_place import base_env
+from robocasa.utils.env_helpers import base_env, create_env
 
 import grasp_perception as GP
 import grasp_agent as GA

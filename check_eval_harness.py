@@ -34,8 +34,8 @@ from robocasa.utils.dataset_registry_utils import get_ds_meta
 from robocasa.scripts.dataset_scripts.playback_dataset import reset_to
 
 from diffusion_policy.env.robomimic.robomimic_image_wrapper import RobomimicImageWrapper
-from diffusion_policy.env_runner.robomimic_image_runner import create_env
-from eval_chained_pick_place import base_env
+from robocasa.utils.env_helpers import create_env
+from robocasa.utils.env_helpers import base_env
 
 
 def load_shape_meta(skill="pick"):
