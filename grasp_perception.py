@@ -76,6 +76,10 @@ JAW_Z_PAD = 0.008
 JAW_CENTRE_Z = 0.5 * (JAW_Z_LO + JAW_Z_HI)
 JAW_SEARCH_Z = 0.05                # how far along the approach to look for material to centre
 MIN_ENCLOSED = 3
+# Panda opens to 0.080 m. Leave clearance: a grasp at the limit squeezes the
+# object out instead of holding it, and the cloud's own extent is the honest
+# measurement where the detector's `width` is not.
+MAX_TRUE_WIDTH = 0.070
 
 
 def object_geom_ids(env, obj_name="obj"):
@@ -255,7 +259,7 @@ def select_grasp(grasps, E, obj_points_world, env, max_width=MAX_GRIPPER_WIDTH,
     Returns a list of dicts sorted best-first.
     """
     reasons = {"width_pred": 0, "off_object": 0, "no_material_on_axis": 0,
-               "no_enclosure": 0, "no_ik": 0}
+               "no_enclosure": 0, "too_wide": 0, "no_ik": 0}
     if grasps is None or len(grasps) == 0 or len(obj_points_world) == 0:
         return [], reasons
 
@@ -310,6 +314,22 @@ def select_grasp(grasps, E, obj_points_world, env, max_width=MAX_GRIPPER_WIDTH,
                      & (local[:, 2] < JAW_Z_HI + JAW_Z_PAD)]
         if len(near) < MIN_ENCLOSED:
             reasons["no_enclosure"] += 1
+            continue
+
+        # Will the jaws actually close around it, or squeeze it out?
+        #
+        # Restored after being deleted as "bug compensation" -- it is not. Measured, the
+        # grasp pose genuinely straddles the object in 12/12 scenes (255 collision points
+        # between the fingers on average), yet the gripper closes on nothing 41% of the
+        # time. Tracing shows contact made and then LOST during the close: the object is
+        # squeezed out. PickPlaceCabinetToCounter is the clearest case, with a collision
+        # extent of 0.081 m across against a jaw opening of 0.080 m -- it cannot fit.
+        #
+        # Measured from the enclosed material rather than taken from GraspNet's `width`,
+        # which is inflated 1.2x and clamped at 0.1 and so cannot be used as a limit.
+        true_w = float(np.ptp(near[:, 0]))
+        if true_w > MAX_TRUE_WIDTH:
+            reasons["too_wide"] += 1
             continue
 
         R_eef = pick_symmetric(R_eef, R_cur)
