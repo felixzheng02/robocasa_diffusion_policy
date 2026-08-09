@@ -40,7 +40,7 @@ Fork point is `4121269` (last upstream merge). Everything since is this project.
 | `setup.py` | `find_namespace_packages` — the package was never installable |
 
 Outside this repo the project also adds `sim/robocasa/robocasa/utils/{skill_utils,skill_dataset_registry,env_helpers}.py`
-and the three `dataset_scripts/` steps below (now in this repo), and modifies
+and the three `dataset_scripts/` steps below (moved into this repo from the robocasa fork, which never owned them), and modifies
 `sim/robocasa/robocasa/utils/{dataset_registry,lerobot_utils}.py` and
 `modules/policy/robomimic_robocasa/robomimic/utils/torch_utils.py`.
 
