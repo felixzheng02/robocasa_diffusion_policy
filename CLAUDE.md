@@ -12,9 +12,9 @@ together and scores with the original task's own `_check_success`. The central p
 finding the frame where the pick ends.
 
 Position in the stack: `vlm_planning` depends on **this** repo; this repo depends on
-`sim/` (`robosuite`, `robocasa`, `robomimic_robocasa`). `anygrasp` depends on `sim/` only and
-imports **zero** diffusion-policy symbols — verified, the string `diffusion_policy` appears
-in `anygrasp/` only inside two markdown files.
+`sim/` (`robosuite`, `robocasa`) and on `../robomimic_robocasa`. The grasp-detector arm
+(`modules/grasping/`) imports **zero**
+diffusion-policy symbols, and cannot: it runs in its own conda env behind an HTTP boundary.
 
 ### The code, as a reviewable diff
 
@@ -40,9 +40,9 @@ Fork point is `4121269` (last upstream merge). Everything since is this project.
 | `setup.py` | `find_namespace_packages` — the package was never installable |
 
 Outside this repo the project also adds `sim/robocasa/robocasa/utils/{skill_utils,skill_dataset_registry,env_helpers}.py`
-and the three `scripts/dataset_scripts/` steps below, and modifies
+and the three `dataset_scripts/` steps below (now in this repo), and modifies
 `sim/robocasa/robocasa/utils/{dataset_registry,lerobot_utils}.py` and
-`sim/robomimic_robocasa/robomimic/utils/torch_utils.py`.
+`modules/policy/robomimic_robocasa/robomimic/utils/torch_utils.py`.
 
 ### `diffusion_policy/skills/eval_helpers.py` — why it exists
 
@@ -51,15 +51,15 @@ and the three `scripts/dataset_scripts/` steps below, and modifies
 the import target for five other evaluators: pulling in an 11-line helper executed the whole
 script's module body, and it resolved at all only when the process happened to be launched
 from the repo root. They are in the package now, so a consumer outside this repo —
-`vlm_planning/eval_agentic_pick_place.py` — imports them by a real package path
+`../vlm_planning/eval_agentic_pick_place.py` — imports them by a real package path
 (`from diffusion_policy.skills.eval_helpers import load_policy, obs_to_frame, stack_obs`).
 
 Only genuinely diffusion-policy-specific helpers belong here. `create_env` and `base_env`
 are **not** diffusion-policy code — one wraps robocasa's own gym registration, the other
 unwinds the wrapper stack that registration builds — and live in
 `sim/robocasa/robocasa/utils/env_helpers.py`. Keeping them here was the last edge tying
-`anygrasp` to this repo, and it dragged wandb, torch, h5py, dill and CLIP into an evaluator
-that never instantiates a policy, for a seven-line `gym.make`.
+the grasp-detector arm to this repo, and it dragged wandb, torch, h5py, dill and CLIP into an
+evaluator that never instantiates a policy, for a seven-line `gym.make`.
 
 ### The package is installed, and was not before
 
@@ -110,16 +110,16 @@ repo's evaluator (see "The split criterion is shared code"). They sit in `roboca
 they import `robocasa.utils.object_utils`, `playback_utils`, `lerobot_utils` and the dataset
 registry, and because the datasets they emit are registry entries that `robocasa` itself must
 resolve — not because they belong to the simulator fork. Change the thresholds in
-`robocasa/utils/skill_utils.py` and both sides move together; change one side alone and the
+`diffusion_policy/skills/skill_utils.py` and both sides move together; change one side alone and the
 training boundary silently drifts from the eval handoff.
 
 Three deliberately separate steps. Step 1 is the only one that touches the simulator, so
 keeping it apart means thresholds can be re-tuned and step 2 re-run in seconds.
 
 ```bash
-python -m robocasa.scripts.dataset_scripts.extract_grasp_signals --split pretrain target --num_procs 6
-python -m robocasa.scripts.dataset_scripts.select_split_points   --split pretrain target
-python -m robocasa.scripts.dataset_scripts.materialize_skill_datasets --split pretrain target --num_procs 4
+python dataset_scripts/extract_grasp_signals.py --split pretrain target --num_procs 6
+python dataset_scripts/select_split_points.py   --split pretrain target
+python dataset_scripts/materialize_skill_datasets.py --split pretrain target --num_procs 4
 ```
 
 Steps 1 and 3 run for hours — launch under tmux or `setsid nohup ... &`. Step 2 is fast,
@@ -249,15 +249,16 @@ MUJOCO_GL=egl python -m robocasa.scripts.dataset_scripts.playback_dataset \
 Prefer the eye-in-hand camera when reviewing video — `agentview_center` (what
 `playback_dataset` renders by default) is often occluded by a cabinet in these scenes.
 
-Grasp-detector plumbing checks (`check_grasp_geometry.py`, `check_grasp_executor.py`) belong
-to the `anygrasp/` project; see `anygrasp/GRASP_README.md`. They are the same idea — a low
-score must never be ambiguous between a bad model and broken plumbing.
+The grasp-detector arm makes the same argument in its own way: `grasping/scripts/eval_rollout.py` takes
+**no actions** and only watches what the detector proposes, so a low pick score can never be
+ambiguous between a bad model and broken plumbing. See
+[`graspnet-baseline/CLAUDE.md`](../../grasping/graspnet-baseline/CLAUDE.md).
 
 ## Architecture
 
 ### The split criterion is shared code, not duplicated logic
 
-`sim/robocasa/robocasa/utils/skill_utils.py` defines what "the pick ended" means and is
+`diffusion_policy/skills/skill_utils.py` defines what "the pick ended" means and is
 imported by **both** the offline splitter and this repo's online evaluator, so the training
 boundary and the eval handoff cannot drift apart. `GraspMoveDetector` (in `skill_utils.py`) is
 the online form of the rule `split_episode` (in `select_split_points.py`) applies offline.
@@ -545,7 +546,7 @@ disagree with the criterion.
   third unrelated meaning.
 - **The DP fork carries a 2022 dependency set.** Two `diffusers` imports were already patched:
   `diffusion_policy/model/common/lr_scheduler.py` and
-  `sim/robomimic_robocasa/robomimic/utils/torch_utils.py` — the latter *inside*
+  `modules/policy/robomimic_robocasa/robomimic/utils/torch_utils.py` — the latter *inside*
   `lr_scheduler_from_optim_params`, so it only fires at optimizer creation and survives a
   standalone import, which is why its traceback pointed at the wrong repo. Both cases are the
   same shape: `diffusers.optimization` used to re-export `Union`/`Optional`/`Optimizer` under

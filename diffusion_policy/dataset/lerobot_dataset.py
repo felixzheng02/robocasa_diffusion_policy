@@ -30,7 +30,7 @@ from typing import Dict, List
 
 
 from robocasa.utils.dataset_registry import DATASET_SOUP_REGISTRY
-from robocasa.utils.skill_utils import parse_task_string
+from diffusion_policy.skills.skill_utils import parse_task_string
 
 # Structured conditioning slots for the pick / place skill datasets. Each maps a shape_meta
 # obs key to the part of the episode's task string it is embedded from. A config declares
@@ -172,13 +172,43 @@ class LerobotDataset(LeRobotSingleDataset, BaseImageDataset):
 
     def _get_slot_embeddings(self):
         """
-        Embed each conditioning slot separately.
+        Embed each conditioning slot separately and cache one embedding set per episode.
 
-        Episodes in the skill datasets carry a structured task string
-        ("pick | obj: beer", "place | obj: beer | recep: cabinet"). Each slot's noun phrase
-        is embedded on its own, which is what lets obj and receptacle be swapped
-        independently at test time. The phrase vocabulary is tiny relative to the number of
-        episodes, so embed the unique phrases once and share them.
+        This replaces the fork's single free-form `lang_emb`. Episodes in the skill datasets
+        carry a structured task string (`"pick | obj: beer"`,
+        `"place | obj: beer | recep: cabinet"`), and each slot's noun phrase is embedded on
+        its own. Embedding them separately is the whole point: it lets the object and the
+        receptacle be swapped independently at test time, with no sentence template.
+
+        Inputs
+        ------
+        self : LerobotDataset
+            Reads `dataset_path`, `trajectory_ids`, `slot_specs` and `_lang_encoder`.
+
+        Outputs
+        -------
+        None
+            Sets `self._demo_id_to_slot_emb`: episode index -> `{slot key: np.ndarray}`,
+            one entry per declared slot (`obj_emb`, and `recep_emb` for place), each a
+            `(768,)` float32 CLIP text embedding. Episodes sharing a phrase share the array.
+
+        Raises
+        ------
+        AssertionError
+            If any episode's task string is missing a slot this dataset declares. Loud on
+            purpose -- a silently zeroed slot would train the policy blind to its argument.
+
+        Procedure
+        ---------
+        1. Locate the episode metadata file and pick a device, preferring CUDA.
+        2. Build the frozen CLIP text encoder if this dataset does not already have one.
+        3. Read the metadata and map each episode index to its task string.
+        4. Parse every episode's task string into its object and receptacle phrases, and
+           assert that no declared slot came back missing.
+        5. Collect the distinct phrases across all episodes and sort them for determinism.
+        6. Embed those unique phrases in batches of 64 -- roughly 100 phrases against
+           thousands of episodes, so this is far cheaper than embedding per episode.
+        7. Store, for each episode, a mapping from slot key to its shared embedding array.
         """
         episode_path = self.dataset_path / LE_ROBOT_EPISODE_FILENAME
         device = TorchUtils.get_torch_device(try_to_use_cuda=True)

@@ -3,7 +3,7 @@ Chained pick -> place evaluation.
 
 Runs the pick policy until it has the object in hand and moving, hands off to the place
 policy, and scores the rollout with the original task's own _check_success. The handoff uses
-robocasa.utils.skill_utils.GraspMoveDetector, which is the same criterion that ended the
+diffusion_policy.skills.skill_utils.GraspMoveDetector, which is the same criterion that ended the
 pick segments in training, so the state at the handoff is in-distribution for both policies.
 
 Three numbers are reported per task:
@@ -31,7 +31,7 @@ import torch
 from termcolor import colored
 
 import robocasa  # noqa: F401  (registers the gym envs)
-import robocasa.utils.skill_utils as SU
+import diffusion_policy.skills.skill_utils as SU
 from robomimic.utils.lang_utils import LangEncoder
 
 from diffusion_policy.common.pytorch_util import dict_apply
@@ -46,11 +46,86 @@ from robocasa.utils.dataset_registry_utils import get_task_horizon
 def run_episode(env_name, split, seed, shape_meta, policies, encoder,
                 horizon, n_obs_steps, device, video_path=None):
     """
-    One rollout. Returns a dict of outcome flags.
+    Run one rollout of a task and report how it went.
 
-    With a place policy this is the chained pick -> place rollout. Without one it evaluates
-    the pick skill alone: run until the grasp criterion fires, then stop. The criterion is
-    GraspMoveDetector either way, i.e. exactly what ended the pick segments in training.
+    With a place policy this is the chained pick -> place rollout: the pick policy drives
+    until the grasp criterion fires, then the place policy takes over. Without one it scores
+    the pick skill alone, stopping the moment the criterion fires. Either way the criterion is
+    `GraspMoveDetector`, which is exactly what ended the pick segments in training.
+
+    Inputs
+    ------
+    env_name : str
+        Task class name, e.g. `"PickPlaceCounterToCabinet"`.
+    split : str
+        Object and scene split to sample from, `"pretrain"` or `"target"`.
+    seed : int
+        Scene seed. Callers pass `base_seed + rollout_index` so runs stay comparable across
+        checkpoints.
+    shape_meta : dict[str, dict]
+        Keyed by phase, `"pick"` and optionally `"place"`. Each is that policy's own
+        `shape_meta`; they differ, which is why the two cannot share one.
+    policies : dict[str, BaseImagePolicy]
+        Keyed by phase. A `"place"` entry is what switches on chained mode.
+    encoder : LangEncoder
+        Frozen CLIP text encoder used to embed the two slot phrases.
+    horizon : int
+        Rollout budget in env steps for the chained run. Pick-only runs get half of it.
+    n_obs_steps : int
+        Frames of context each policy expects.
+    device : str or torch.device
+        Where to run inference.
+    video_path : str or pathlib.Path or None
+        If given, a diagnostic video is written here. A literal `$TAG` in the path is
+        replaced by `OK` or `FAIL`. `None` disables recording.
+
+    Outputs
+    -------
+    result : dict
+        - `pick_success` (bool) -- the grasp criterion fired
+        - `task_success` (bool) -- the task's own `_check_success` fired
+        - `handoff_step` (int or None) -- step the place phase began, `None` if it never did
+        - `steps` (int) -- env steps actually executed
+        - `still_holding` (bool) -- object still grasped at the final step
+        - `final_dz` (float) -- net object height change in metres, 4 dp
+        - `obj` (str) -- the object's noun phrase, for the per-object breakdown
+
+    Procedure
+    ---------
+    1. Decide whether this is pick-only, and build the wrapper on whichever schema is in play
+       -- place's obs keys are a superset of pick's.
+    2. Reset with zero-filled placeholder slots, because the real slots are only knowable once
+       the scene exists but `get_observation` needs the keys present.
+    3. Read the true slots from the env's own episode metadata and embed both phrases.
+    4. Set the budget: the full horizon when chaining, half of it for pick-only, so the two
+       numbers stay comparable.
+    5. Reset every policy, install the real slot embeddings, and seed the history from
+       `last_raw_obs`.
+    6. Each iteration, stack the history and filter it to just the keys the current phase's
+       policy was trained on, then predict an action chunk.
+    7. Execute the chunk one action at a time, appending frames and counting steps.
+    8. Stop the whole rollout on task success; on a pick-phase detector fire, either stop
+       (pick-only) or switch to place and abandon the rest of the chunk.
+    9. If the pick phase runs past half the horizon without firing, hand off anyway.
+    10. After the loop, record whether the object is still held and its net height change.
+    11. Write the video if requested, tagging the filename with the outcome.
+    12. Close the env and return the outcome flags.
+
+    Notes
+    -----
+    Three details here are load-bearing:
+
+    - The wrapper always emits every slot **its own** schema declares. Dropping `recep_emb`
+      during the pick phase would leave `get_observation` unable to fill a key it must fill,
+      so phase filtering happens on the policy input instead.
+    - The pick policy's normalizer has no entry for `recep_emb` and raises if handed one, so
+      the extra slot cannot simply ride along.
+    - The action chunk is cut short at the handoff. A stale pick action executed after the
+      grasp drags the object.
+
+    `still_holding` is reported alongside `pick_success` because the detector only requires a
+    grasp plus 2 cm of motion: a policy that grabs, nudges and drops passes the first and
+    fails the second, and the gap between them is the diagnostic.
     """
     pick_only = "place" not in policies
 
@@ -175,6 +250,71 @@ def run_episode(env_name, split, seed, shape_meta, policies, encoder,
 
 
 def main():
+    """
+    Command-line entry point: sweep tasks, run rollouts, and report skill success rates.
+
+    Runs in one of two modes. Given both checkpoints it scores the chained pick -> place
+    behaviour; given only a pick checkpoint it scores the pick skill alone.
+
+    Inputs
+    ------
+    Read from the command line, not from arguments:
+    --pick_checkpoint : str (required)
+        Path to the pick policy checkpoint.
+    --place_checkpoint : str or None
+        Path to the place policy checkpoint. Omit to evaluate pick alone.
+    --tasks : list[str]
+        Tasks to sweep. Defaults to all 18 PickPlace tasks.
+    --split : str
+        Which split to sample scenes from. Defaults to `pretrain`.
+    --num_rollouts : int
+        Rollouts per task. Defaults to 50.
+    --seed : int
+        Base scene seed; rollout `i` uses `seed + i`, so runs are comparable across
+        checkpoints. Defaults to 100000.
+    --device : str
+        Inference device. Defaults to `cuda:0`.
+    --output : str or None
+        Results file. Defaults to `pick_eval.json` or `chained_eval.json` by mode.
+    --video_dir : str or None
+        Record diagnostic rollouts here; filenames carry `OK` or `FAIL`.
+    --video_n : int
+        Rollouts to record per task. Defaults to 3, because recording every one is slow.
+
+    Outputs
+    -------
+    None
+        Prints a per-task line, the average, and the ten weakest objects. Writes a JSON file
+        holding `summary` (the per-task rates plus an `AVERAGE` row) and `rollouts` (every
+        individual rollout record).
+
+    Procedure
+    ---------
+    1. Parse the arguments and load the pick policy and its shape_meta.
+    2. Load the place policy too when a checkpoint was given, which selects chained mode.
+    3. Take `n_obs_steps` from the pick policy and choose the output filename by mode.
+    4. Build the CLIP text encoder on CPU.
+    5. For each task, read its own rollout budget from the registry.
+    6. Run each rollout, recording video for the first `--video_n` of them.
+    7. Catch and print any rollout that raises, then continue -- a broken scene must not kill
+       a multi-hour sweep.
+    8. Skip a task entirely if none of its rollouts survived.
+    9. Compute pick success, still-holding, and mean steps to grasp; add the two place
+       metrics in chained mode.
+    10. Print one line per task as it finishes.
+    11. Average each metric across tasks into an `AVERAGE` row.
+    12. Pool every rollout by object and print the ten with the lowest pick success.
+    13. Write the summary and the raw rollouts to the output file.
+
+    Notes
+    -----
+    Because failed rollouts are skipped rather than fatal, **check `n` per task in the output
+    JSON**: a task that silently ran 3 of 50 rollouts still reports a rate.
+
+    The per-object breakdown exists for a specific documented risk -- handled objects (ladles,
+    measuring cups) are the ones expected to fail, because fingerpad contact is structurally
+    unavailable for them.
+    """
     p = argparse.ArgumentParser()
     p.add_argument("--pick_checkpoint", required=True)
     p.add_argument(
